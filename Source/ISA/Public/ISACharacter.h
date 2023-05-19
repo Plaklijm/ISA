@@ -17,7 +17,26 @@ class AISACharacter : public ACharacter
 	GENERATED_BODY()
 
 protected:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Movement) class UISACharacterMovementComponent* ISACharacterMovementComponent;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Movement) 
+	class UISACharacterMovementComponent* ISACharacterMovementComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Tags|ISA Character", Transient)
+	FGameplayTag DesiredStance { ISAStanceTags::Standing };
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Tags|ISA Character", Transient)
+	FGameplayTag DesiredGait { ISAGaitTags::Walking };
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Tags|ISA Character", Transient)
+	FGameplayTag LocomotionMode { ISALocomotionModeTags::Grounded };
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Tags|ISA Character", Transient)
+	FGameplayTag LocomotionAction;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Tags|ISA Character", Transient)
+	FGameplayTag Stance { ISAStanceTags::Standing };
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Tags|ISA Character", Transient)
+	FGameplayTag Gait { ISAGaitTags::Walking };
 
 private:
 	//Camera boom positioning the camera behind the character
@@ -46,7 +65,6 @@ public:
 public:
 	AISACharacter(const FObjectInitializer& ObjectInitializer);
 	
-
 protected:
 	// Called for movement input
 	void Move(const FInputActionValue& Value);
@@ -129,5 +147,89 @@ private:
 //protected:
 //	UFUNCTION(BlueprintNativeEvent, Category = "Als Character")
 //		void OnMantlingEnded();
+#pragma region GameplayTags
+//Locomotion Mode
+private:
+	void SetLocomotionMode(const FGameplayTag& NewLocomotionMode);
+
+	void NotifyLocomotionModeChanged(const FGameplayTag& PreviousLocomotionMode);
+
+protected:
+	UFUNCTION(BlueprintNativeEvent, Category = "ISA Character")
+	void OnLocomotionModeChanged(const FGameplayTag& PreviousLocomotionMode);
+
+public:
+	const FGameplayTag& GetLocomotionMode() const;
+
+//Desired Stance
+public:
+	UFUNCTION(BlueprintCallable, Category = "ISA Character", Meta = (AutoCreateRefTerm = "NewDesiredStance"))
+	void SetDesiredStance(const FGameplayTag& NewDesiredStance);
+
+	const FGameplayTag& GetDesiredStance() const;
+
+protected:
+	virtual void ApplyDesiredStance();
+
+//Stance
+private:
+	void SetStance(const FGameplayTag& NewStance);
+
+public:
+	const FGameplayTag& GetStance() const;
+
+protected:
+	UFUNCTION(BlueprintNativeEvent, Category = "ISA Character")
+	void OnStanceChanged(const FGameplayTag& PreviousStance);
+
+//Desired Gait
+public:
+	void SetDesiredGait(const FGameplayTag& NewDesiredGait);
+
+	const FGameplayTag& GetDesiredGait() const;
+
+//Gait
+private:
+	void SetGait(const FGameplayTag& NewGait);
+
+	void RefreshGait();
+
+	FGameplayTag CalculateMaxAllowedGait() const;
+
+	FGameplayTag CalculateActualGait(const FGameplayTag& MaxAllowedGait) const;
+
+public:
+	const FGameplayTag& GetGait() const;
+
+protected:
+	UFUNCTION(BlueprintNativeEvent, Category = "Als Character")
+	void OnGaitChanged(const FGameplayTag& PreviousGait);
+
+//Locomotion Action
+public:
+	void SetLocomotionAction(const FGameplayTag& NewLocomotionAction);
+
+	const FGameplayTag& GetLocomotionAction() const;
+
+	void NotifyLocomotionActionChanged(const FGameplayTag& PreviousLocomotionAction);
+
+protected:
+	UFUNCTION(BlueprintNativeEvent, Category = "ISA Character")
+	void OnLocomotionActionChanged(const FGameplayTag& PreviousLocomotionAction);
+
+#pragma endregion
 };
 
+#pragma region TagGettersImplementation
+inline const FGameplayTag& AISACharacter::GetDesiredStance() const { return DesiredStance; }
+
+inline const FGameplayTag& AISACharacter::GetDesiredGait() const { return DesiredGait; }
+
+inline const FGameplayTag& AISACharacter::GetLocomotionMode() const { return LocomotionMode; }
+
+inline const FGameplayTag& AISACharacter::GetLocomotionAction() const { return LocomotionAction; }
+
+inline const FGameplayTag& AISACharacter::GetStance() const { return Stance; }
+
+inline const FGameplayTag& AISACharacter::GetGait() const { return Gait; }
+#pragma endregion

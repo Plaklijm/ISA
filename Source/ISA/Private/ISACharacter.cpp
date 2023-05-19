@@ -137,3 +137,69 @@ FCollisionQueryParams AISACharacter::GetIgnoreCharacterParams() const
 
 	return Params;
 }
+
+void AISACharacter::SetLocomotionMode(const FGameplayTag& NewLocomotionMode)
+{
+}
+
+void AISACharacter::NotifyLocomotionModeChanged(const FGameplayTag& PreviousLocomotionMode)
+{
+}
+
+void AISACharacter::OnLocomotionModeChanged(const FGameplayTag& PreviousLocomotionMode)
+{
+}
+
+void AISACharacter::SetDesiredStance(const FGameplayTag& NewDesiredStance)
+{
+}
+
+void AISACharacter::ApplyDesiredStance()
+{
+}
+
+void AISACharacter::SetStance(const FGameplayTag& NewStance)
+{
+}
+
+void AISACharacter::OnStanceChanged(const FGameplayTag& PreviousStance)
+{
+}
+
+void AISACharacter::SetDesiredGait(const FGameplayTag& NewDesiredGait)
+{
+}
+
+void AISACharacter::SetGait(const FGameplayTag& NewGait)
+{
+}
+
+void AISACharacter::RefreshGait()
+{
+}
+
+FGameplayTag AISACharacter::CalculateMaxAllowedGait() const
+{
+	return FGameplayTag();
+}
+
+FGameplayTag AISACharacter::CalculateActualGait(const FGameplayTag& MaxAllowedGait) const
+{
+	return FGameplayTag();
+}
+
+void AISACharacter::OnGaitChanged(const FGameplayTag& PreviousGait)
+{
+}
+
+void AISACharacter::SetLocomotionAction(const FGameplayTag& NewLocomotionAction)
+{
+}
+
+void AISACharacter::NotifyLocomotionActionChanged(const FGameplayTag& PreviousLocomotionAction)
+{
+}
+
+void AISACharacter::OnLocomotionActionChanged(const FGameplayTag& PreviousLocomotionAction)
+{
+}
