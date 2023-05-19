@@ -367,7 +367,6 @@ void UISACharacterMovementComponent::PhysSlide(float deltaTime, int32 Iterations
 		}
 	}
 
-
 	FHitResult Hit;
 	FQuat NewRotation = FRotationMatrix::MakeFromXZ(Velocity.GetSafeNormal2D(), FVector::UpVector).ToQuat();
 	SafeMoveUpdatedComponent(FVector::ZeroVector, NewRotation, false, Hit);
@@ -412,5 +411,4 @@ bool UISACharacterMovementComponent::IsMovementMode(EMovementMode InMovementMode
 {
 	return InMovementMode == MovementMode;
 }
-
 #pragma endregion

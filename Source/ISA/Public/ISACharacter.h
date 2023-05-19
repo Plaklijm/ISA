@@ -6,6 +6,8 @@
 #include "GameFramework/Character.h"
 #include "InputActionValue.h"
 #include "ISA.h"
+#include "Utility/ISAGameplayTags.h"
+
 #include "ISACharacter.generated.h"
 
 
