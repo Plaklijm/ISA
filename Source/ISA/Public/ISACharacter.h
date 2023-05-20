@@ -5,11 +5,10 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "InputActionValue.h"
-#include "ISA.h"
 #include "Utility/ISAGameplayTags.h"
+#include "ISA.h"
 
 #include "ISACharacter.generated.h"
-
 
 UCLASS(config=Game)
 class AISACharacter : public ACharacter
@@ -19,6 +18,9 @@ class AISACharacter : public ACharacter
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Movement) 
 	class UISACharacterMovementComponent* ISACharacterMovementComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|ISA Character")
+	TObjectPtr<UISASettings> Settings;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Tags|ISA Character", Transient)
 	FGameplayTag DesiredStance { ISAStanceTags::Standing };
@@ -37,6 +39,8 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Tags|ISA Character", Transient)
 	FGameplayTag Gait { ISAGaitTags::Walking };
+
+	FTimerHandle BrakingFrictionFactorResetTimer;
 
 private:
 	//Camera boom positioning the camera behind the character
@@ -89,6 +93,8 @@ public:
 	FORCEINLINE class UISACharacterMovementComponent* GetISACharacterMovement() const { return ISACharacterMovementComponent; }
 	//Returns Ignored Character Params
 	FCollisionQueryParams GetIgnoreCharacterParams() const;
+
+	virtual void Tick(float DeltaTime) override;
 
 private:
 	//void ApplyRotationYawSpeed(float DeltaTime);
@@ -147,16 +153,16 @@ private:
 //protected:
 //	UFUNCTION(BlueprintNativeEvent, Category = "Als Character")
 //		void OnMantlingEnded();
+
+public:
+	virtual void OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode = 0) override;
+
 #pragma region GameplayTags
 //Locomotion Mode
 private:
 	void SetLocomotionMode(const FGameplayTag& NewLocomotionMode);
 
 	void NotifyLocomotionModeChanged(const FGameplayTag& PreviousLocomotionMode);
-
-protected:
-	UFUNCTION(BlueprintNativeEvent, Category = "ISA Character")
-	void OnLocomotionModeChanged(const FGameplayTag& PreviousLocomotionMode);
 
 public:
 	const FGameplayTag& GetLocomotionMode() const;
@@ -178,10 +184,6 @@ private:
 public:
 	const FGameplayTag& GetStance() const;
 
-protected:
-	UFUNCTION(BlueprintNativeEvent, Category = "ISA Character")
-	void OnStanceChanged(const FGameplayTag& PreviousStance);
-
 //Desired Gait
 public:
 	void SetDesiredGait(const FGameplayTag& NewDesiredGait);
@@ -201,10 +203,6 @@ private:
 public:
 	const FGameplayTag& GetGait() const;
 
-protected:
-	UFUNCTION(BlueprintNativeEvent, Category = "Als Character")
-	void OnGaitChanged(const FGameplayTag& PreviousGait);
-
 //Locomotion Action
 public:
 	void SetLocomotionAction(const FGameplayTag& NewLocomotionAction);
@@ -212,10 +210,6 @@ public:
 	const FGameplayTag& GetLocomotionAction() const;
 
 	void NotifyLocomotionActionChanged(const FGameplayTag& PreviousLocomotionAction);
-
-protected:
-	UFUNCTION(BlueprintNativeEvent, Category = "ISA Character")
-	void OnLocomotionActionChanged(const FGameplayTag& PreviousLocomotionAction);
 
 #pragma endregion
 };

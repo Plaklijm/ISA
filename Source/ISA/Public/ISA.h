@@ -8,6 +8,9 @@
 class USpringArmComponent;
 class UCameraComponent;
 
-// Zippy Classes
+// Character Settings
+class UISASettings;
+
+// Character Classes
 class AISACharacter;
 class UISACharacterMovementComponent;

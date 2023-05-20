@@ -39,6 +39,9 @@ private:
 		UPROPERTY(Transient) AISACharacter* ISACharacterOwner;
 
 	#pragma region Flags
+public:
+		bool bHasInput = false;
+private:
 		bool bWantsToSprint;
 
 		bool bHadAnimRootMotion;
@@ -79,6 +82,7 @@ private:
 private:
 	float CapR() const;
 	float CapHH() const;
+	void SetupInputDirection(FVector NewInputDirection);
 
 	// Interface
 public:

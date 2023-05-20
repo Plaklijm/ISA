@@ -3,6 +3,8 @@
 #include "ISACharacter.h"
 
 #include "ISACharacterMovementComponent.h"
+#include "Utility/ISASettings.h"
+#include "TimerManager.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/InputComponent.h"
@@ -17,6 +19,7 @@
 
 AISACharacter::AISACharacter(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer.SetDefaultSubobjectClass<UISACharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
 {
+	PrimaryActorTick.bCanEverTick = true;
 	// Set default CMC 
 	ISACharacterMovementComponent = Cast<UISACharacterMovementComponent>(GetCharacterMovement());
 	// Set size for collision capsule
@@ -30,6 +33,7 @@ AISACharacter::AISACharacter(const FObjectInitializer& ObjectInitializer) : Supe
 	// Configure character movement
 	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...	
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f); // ...at this rotation rate
+	GetCharacterMovement()->bCanWalkOffLedgesWhenCrouching = true;
 
 	// Note: For faster iteration times these variables, and many more, can be tweaked in the Character Blueprint
 	// instead of recompiling to adjust them
@@ -75,8 +79,8 @@ void AISACharacter::BeginPlay()
 void AISACharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
 	// Set up action bindings
-	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent)) {
-		
+	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent)) 
+	{
 		//Jumping
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
@@ -127,7 +131,7 @@ void AISACharacter::Move(const FInputActionValue& Value)
 
 FCollisionQueryParams AISACharacter::GetIgnoreCharacterParams() const
 {
-	// Ignore chacter when raycasting
+	// Ignore character when raycasting
 	FCollisionQueryParams Params;
 
 	TArray<AActor*> CharacterChildren;
@@ -138,31 +142,118 @@ FCollisionQueryParams AISACharacter::GetIgnoreCharacterParams() const
 	return Params;
 }
 
+void AISACharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+}
+
+void AISACharacter::OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode)
+{
+	//Checks if the player is on the ground or in the air, set the locomotionmode accordingly
+	switch (GetCharacterMovement()->MovementMode)
+	{
+		case MOVE_Walking:
+			SetLocomotionMode(ISALocomotionModeTags::Grounded);
+			break;
+
+		case MOVE_Falling:
+			SetLocomotionMode(ISALocomotionModeTags::InAir);
+			break;
+		
+		default:
+			SetLocomotionMode(FGameplayTag::EmptyTag);
+			break;
+
+	}
+	Super::OnMovementModeChanged(PreviousMovementMode, PreviousCustomMode);
+}
+
 void AISACharacter::SetLocomotionMode(const FGameplayTag& NewLocomotionMode)
 {
+	//checks if the new mode is not the old one
+	if (LocomotionMode != NewLocomotionMode)
+	{
+		const auto PreviousLocomotionMode{ LocomotionMode };
+
+		//apply locomotionmode
+		LocomotionMode = NewLocomotionMode;
+
+		NotifyLocomotionModeChanged({ PreviousLocomotionMode });
+	}
+
 }
 
 void AISACharacter::NotifyLocomotionModeChanged(const FGameplayTag& PreviousLocomotionMode)
 {
-}
+	ApplyDesiredStance();
 
-void AISACharacter::OnLocomotionModeChanged(const FGameplayTag& PreviousLocomotionMode)
-{
+	if (LocomotionMode == ISALocomotionModeTags::Grounded && PreviousLocomotionMode == ISALocomotionModeTags::InAir)
+	{
+		UE_LOG(LogTemp, Error, TEXT("%f"), ISACharacterMovementComponent->Velocity.Z)
+		if (GetISACharacterMovement()->Velocity.Z <= -Settings->TestValue)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("StartRolling"));
+			//StartRolling
+			//Fix Velocity.Z (cant get value out of it for some reason)
+
+		}
+		else
+		{
+			ISACharacterMovementComponent->BrakingFrictionFactor = ISACharacterMovementComponent->bHasInput 
+																									? Settings->HasInputBrakingFrictionFactor 
+																									: Settings->NoInputBrakingFrictionFactor;
+
+			GetWorldTimerManager().SetTimer(BrakingFrictionFactorResetTimer,
+				FTimerDelegate::CreateWeakLambda(this, [this]
+					{
+						GetISACharacterMovement()->BrakingFrictionFactor = 1.0f;
+						UE_LOG(LogTemp, Warning, TEXT("Braking = 0"));
+					}), 0.5f, false);
+			UE_LOG(LogTemp, Warning, TEXT("ELSE"));
+		}
+	}
 }
 
 void AISACharacter::SetDesiredStance(const FGameplayTag& NewDesiredStance)
 {
+	//Sets the stance the player wants to be in. This essentially queues the stance for it to be applied
+	if (DesiredStance != NewDesiredStance)
+	{
+		DesiredStance = NewDesiredStance;
+
+		ApplyDesiredStance();
+	}
+	
 }
 
 void AISACharacter::ApplyDesiredStance()
 {
+	if (!LocomotionAction.IsValid())
+	{
+		if (LocomotionMode == ISALocomotionModeTags::Grounded)
+		{
+			if (DesiredStance == ISAStanceTags::Standing)
+			{
+				UnCrouch();
+			}
+			else if (DesiredStance == ISAStanceTags::Crouching)
+			{
+				Crouch();
+			}
+		}
+		else if (LocomotionMode == ISALocomotionModeTags::InAir)
+		{
+			UnCrouch();
+		}
+	}
+	else if (LocomotionAction == ISALocomotionActionTags::Rolling)
+	{
+		Crouch();
+	}
+	UE_LOG(LogTemp, Warning, TEXT("%s"), *(DesiredStance.ToString()))
 }
 
 void AISACharacter::SetStance(const FGameplayTag& NewStance)
-{
-}
-
-void AISACharacter::OnStanceChanged(const FGameplayTag& PreviousStance)
 {
 }
 
@@ -188,18 +279,10 @@ FGameplayTag AISACharacter::CalculateActualGait(const FGameplayTag& MaxAllowedGa
 	return FGameplayTag();
 }
 
-void AISACharacter::OnGaitChanged(const FGameplayTag& PreviousGait)
-{
-}
-
 void AISACharacter::SetLocomotionAction(const FGameplayTag& NewLocomotionAction)
 {
 }
 
 void AISACharacter::NotifyLocomotionActionChanged(const FGameplayTag& PreviousLocomotionAction)
-{
-}
-
-void AISACharacter::OnLocomotionActionChanged(const FGameplayTag& PreviousLocomotionAction)
 {
 }

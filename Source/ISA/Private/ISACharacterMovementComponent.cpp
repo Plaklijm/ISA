@@ -116,6 +116,8 @@ float UISACharacterMovementComponent::GetMaxBrakingDeceleration() const
 	{
 		Super::OnMovementUpdated(DeltaSeconds, OldLocation, OldVelocity);
 
+		SetupInputDirection(GetCurrentAcceleration() / GetMaxAcceleration());
+		
 		bPrevWantsToCrouch = bWantsToCrouch;
 	}
 
@@ -383,6 +385,11 @@ float UISACharacterMovementComponent::CapR() const
 float UISACharacterMovementComponent::CapHH() const
 {
 	return CharacterOwner->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
+}
+
+void UISACharacterMovementComponent::SetupInputDirection(FVector NewInputDirection)
+{
+	bHasInput = NewInputDirection.GetSafeNormal().SizeSquared() > UE_KINDA_SMALL_NUMBER;
 }
 
 #pragma endregion
