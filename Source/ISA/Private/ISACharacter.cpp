@@ -15,6 +15,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Engine/Canvas.h"
+#include "Net/Core/PushModel/PushModel.h"
 
 
 // AISACharacter
@@ -89,6 +90,9 @@ void AISACharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInput
 
 		//Moving
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AISACharacter::Move);
+
+		//Debug
+		EnhancedInputComponent->BindAction(DebugCommand, ETriggerEvent::Started, this, &AISACharacter::SetDebugCommand);
 	}
 }
 
@@ -106,6 +110,12 @@ void AISACharacter::StopJumping()
 	bPressedISAJump = false;
 
 	Super::StopJumping();
+}
+
+void AISACharacter::SetDebugCommand()
+{
+	//Inserts the showdebug Command into the cmd, executed when the debug button gets pressed
+	GetNetOwningPlayer()->ConsoleCommand("showdebug");
 }
 
 void AISACharacter::Move(const FInputActionValue& Value)
@@ -147,14 +157,6 @@ FCollisionQueryParams AISACharacter::GetIgnoreCharacterParams() const
 void AISACharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	if (GEngine)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Yellow, FString::Printf(TEXT("LocomotionMode: %s  LocomotionAction: %s"), *LocomotionMode.ToString(), *LocomotionAction.ToString()));
-		GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Yellow, FString::Printf(TEXT("Desired Gait: %s  Gait: %s"), *DesiredGait.ToString(), * Gait.ToString()));
-		GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Yellow, FString::Printf(TEXT("Desired Stance: %s  Stance, %s"), *DesiredStance.ToString(), *Stance.ToString()));
-	}
-	
 }
 
 void AISACharacter::OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode)
@@ -264,40 +266,105 @@ void AISACharacter::ApplyDesiredStance()
 
 void AISACharacter::SetStance(const FGameplayTag& NewStance)
 {
+	//Set stance in the CMC function needs to be implemented
+
+	//Check if the current stance isnt the same as the new one
+	if (Stance != NewStance)
+	{
+		//Set previous and current stance
+		const auto PreviousStance{Stance};
+
+		Stance = NewStance;
+	}
 }
 
 void AISACharacter::SetDesiredGait(const FGameplayTag& NewDesiredGait)
 {
+	if (DesiredGait != NewDesiredGait)
+	{
+		DesiredGait = NewDesiredGait;
+	}
 }
 
 void AISACharacter::SetGait(const FGameplayTag& NewGait)
 {
+	if (Gait != NewGait)
+	{
+		Gait = NewGait;
+	}
 }
 
 void AISACharacter::RefreshGait()
 {
+	if (LocomotionMode != ISALocomotionModeTags::Grounded)
+	{
+		return;
+	}
+
+	const auto MaxAllowedGait{CalculateMaxAllowedGait()};
+
+	//Set CMC MaxAllowedGait sets the maxwalk speed based on currently max allowed gait
+
+	SetGait(CalculateActualGait(MaxAllowedGait));
 }
 
 FGameplayTag AISACharacter::CalculateMaxAllowedGait() const
 {
-	return FGameplayTag();
+	//This represents the maximum gait the character is currently allowed to be in and can be determined by 
+	//desired gait, stance etc (If you want to force the character to be in a Gait based on something you can do it here)
+	if (DesiredGait != ISAGaitTags::Sprinting)
+	{
+		return DesiredGait;
+	}
+
+	if (true/*canSprint function*/)
+	{
+		return ISAGaitTags::Sprinting;
+	}
+
+	return ISAGaitTags::Running;
 }
 
 FGameplayTag AISACharacter::CalculateActualGait(const FGameplayTag& MaxAllowedGait) const
 {
-	return FGameplayTag();
+	//Calculates the actual gait the player is in, this can differ from the desired or max allowed gait,
+	//When sprinting to walking youll only be in the walking gait when you decelerate enough to be considerd walking
+	
+	/*if (LocomotionState.Speed < ISACharacterMovement->GetGaitSettings().WalkSpeed + 10.0f)
+	{
+		return ISAGaitTags::Walking;
+	}
+
+	if (LocomotionState.Speed < ISACharacterMovement->GetGaitSettings().RunSpeed + 10.0f || MaxAllowedGait != ISAGaitTags::Sprinting)
+	{
+		return ISAGaitTags::Running;
+	}
+	*/
+	return ISAGaitTags::Sprinting;
 }
 
 void AISACharacter::SetLocomotionAction(const FGameplayTag& NewLocomotionAction)
 {
+	if (LocomotionAction != NewLocomotionAction)
+	{
+		const auto PreviousLocomotionAction{LocomotionAction};
+
+		LocomotionAction = NewLocomotionAction;
+
+		NotifyLocomotionActionChanged(PreviousLocomotionAction);
+	}
 }
 
 void AISACharacter::NotifyLocomotionActionChanged(const FGameplayTag& PreviousLocomotionAction)
 {
+	ApplyDesiredStance();
 }
+
+#pragma region Debug
 
 void AISACharacter::DisplayDebug(UCanvas* Canvas, const FDebugDisplayInfo& DebugDisplay, float& YL, float& YPos)
 {
+	//Display debug and sends the correct information to the stateinfo function
 	const auto Scale{FMath::Min(Canvas->SizeX / (1280.0f * Canvas->GetDPIScale()), Canvas->SizeY / (720.0f * Canvas->GetDPIScale()))};
 	DisplayDebugStateInfo(Canvas, Scale, YL, YPos);
 	
@@ -307,8 +374,10 @@ void AISACharacter::DisplayDebug(UCanvas* Canvas, const FDebugDisplayInfo& Debug
 void AISACharacter::DisplayDebugStateInfo(const UCanvas* Canvas, const float Scale, const float HorizontalLocation,
                                           float& VerticalLocation) const
 {
+	//Function directly copied from ALS, Gets all the state information and displays it in the debug mode in editor
 	VerticalLocation += 1 * Scale;
 
+	//Makes Text item
 	FCanvasTextItem Text{
 		FVector2d::ZeroVector,
 		FText::GetEmpty(),
@@ -319,21 +388,27 @@ void AISACharacter::DisplayDebugStateInfo(const UCanvas* Canvas, const float Sca
 	Text.Scale = {Scale * 0.75f, Scale * 0.75f};
 	Text.EnableShadow(FLinearColor::Black);
 
+	//init offsets
 	const auto RowOffset {12 * Scale};
 	const auto ColumnOffset{120.f * Scale};
 
+	//Gets the LocomotionMode and converts it to Text
 	static const auto LocomotionModeText{
 		FText::AsCultureInvariant(FName::NameToDisplayString(GET_MEMBER_NAME_STRING_CHECKED(ThisClass, LocomotionMode), false))
 	};
 
+	//Display Text
 	Text.Text = LocomotionModeText;
 	Text.Draw(Canvas->Canvas, {HorizontalLocation, VerticalLocation});
 
+	//Display the current State of the Tag
 	Text.Text = FText::AsCultureInvariant(FName::NameToDisplayString(GetSimpleTagName(LocomotionMode).ToString(), false));
 	Text.Draw(Canvas->Canvas, {HorizontalLocation + ColumnOffset, VerticalLocation});
 
+	//Add Offset
 	VerticalLocation += RowOffset;
 
+	//Repeat of the previous steps
 	static const auto DesiredStanceText{
 		FText::AsCultureInvariant(FName::NameToDisplayString(GET_MEMBER_NAME_STRING_CHECKED(ThisClass, DesiredStance), false))
 	};
@@ -402,5 +477,4 @@ FName AISACharacter::GetSimpleTagName(const FGameplayTag& Tag)
 	return TagNode.IsValid() ? TagNode->GetSimpleTagName() : NAME_None;
 }
 
-
-
+#pragma endregion 

@@ -63,6 +63,9 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* MoveAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* DebugCommand;
+
 public:
 	bool bPressedISAJump;
 
@@ -76,6 +79,7 @@ protected:
 public:
 	virtual void Jump() override;
 	virtual void StopJumping() override;
+	void SetDebugCommand();
 
 protected:
 	// APawn interface
@@ -212,7 +216,8 @@ public:
 	void NotifyLocomotionActionChanged(const FGameplayTag& PreviousLocomotionAction);
 
 #pragma endregion
-
+	
+//Debug functions
 	virtual void DisplayDebug(UCanvas* Canvas, const FDebugDisplayInfo& DebugDisplay, float& YL, float& YPos) override;
 	
 	void DisplayDebugStateInfo(const UCanvas* Canvas, const float Scale, const float HorizontalLocation, float& VerticalLocation) const;
