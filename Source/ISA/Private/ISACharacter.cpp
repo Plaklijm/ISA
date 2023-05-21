@@ -2,6 +2,7 @@
 
 #include "ISACharacter.h"
 
+#include "CanvasItem.h"
 #include "ISACharacterMovementComponent.h"
 #include "Utility/ISASettings.h"
 #include "TimerManager.h"
@@ -13,6 +14,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "Engine/Canvas.h"
 
 
 // AISACharacter
@@ -145,6 +147,14 @@ FCollisionQueryParams AISACharacter::GetIgnoreCharacterParams() const
 void AISACharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Yellow, FString::Printf(TEXT("LocomotionMode: %s  LocomotionAction: %s"), *LocomotionMode.ToString(), *LocomotionAction.ToString()));
+		GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Yellow, FString::Printf(TEXT("Desired Gait: %s  Gait: %s"), *DesiredGait.ToString(), * Gait.ToString()));
+		GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Yellow, FString::Printf(TEXT("Desired Stance: %s  Stance, %s"), *DesiredStance.ToString(), *Stance.ToString()));
+	}
+	
 }
 
 void AISACharacter::OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode)
@@ -250,7 +260,6 @@ void AISACharacter::ApplyDesiredStance()
 	{
 		Crouch();
 	}
-	UE_LOG(LogTemp, Warning, TEXT("%s"), *(DesiredStance.ToString()))
 }
 
 void AISACharacter::SetStance(const FGameplayTag& NewStance)
@@ -286,3 +295,112 @@ void AISACharacter::SetLocomotionAction(const FGameplayTag& NewLocomotionAction)
 void AISACharacter::NotifyLocomotionActionChanged(const FGameplayTag& PreviousLocomotionAction)
 {
 }
+
+void AISACharacter::DisplayDebug(UCanvas* Canvas, const FDebugDisplayInfo& DebugDisplay, float& YL, float& YPos)
+{
+	const auto Scale{FMath::Min(Canvas->SizeX / (1280.0f * Canvas->GetDPIScale()), Canvas->SizeY / (720.0f * Canvas->GetDPIScale()))};
+	DisplayDebugStateInfo(Canvas, Scale, YL, YPos);
+	
+	Super::DisplayDebug(Canvas, DebugDisplay, YL, YPos);
+}
+
+void AISACharacter::DisplayDebugStateInfo(const UCanvas* Canvas, const float Scale, const float HorizontalLocation,
+                                          float& VerticalLocation) const
+{
+	VerticalLocation += 1 * Scale;
+
+	FCanvasTextItem Text{
+		FVector2d::ZeroVector,
+		FText::GetEmpty(),
+		GEngine->GetMediumFont(),
+		FLinearColor::White
+	};
+
+	Text.Scale = {Scale * 0.75f, Scale * 0.75f};
+	Text.EnableShadow(FLinearColor::Black);
+
+	const auto RowOffset {12 * Scale};
+	const auto ColumnOffset{120.f * Scale};
+
+	static const auto LocomotionModeText{
+		FText::AsCultureInvariant(FName::NameToDisplayString(GET_MEMBER_NAME_STRING_CHECKED(ThisClass, LocomotionMode), false))
+	};
+
+	Text.Text = LocomotionModeText;
+	Text.Draw(Canvas->Canvas, {HorizontalLocation, VerticalLocation});
+
+	Text.Text = FText::AsCultureInvariant(FName::NameToDisplayString(GetSimpleTagName(LocomotionMode).ToString(), false));
+	Text.Draw(Canvas->Canvas, {HorizontalLocation + ColumnOffset, VerticalLocation});
+
+	VerticalLocation += RowOffset;
+
+	static const auto DesiredStanceText{
+		FText::AsCultureInvariant(FName::NameToDisplayString(GET_MEMBER_NAME_STRING_CHECKED(ThisClass, DesiredStance), false))
+	};
+
+	Text.Text = DesiredStanceText;
+	Text.Draw(Canvas->Canvas, {HorizontalLocation, VerticalLocation});
+
+	Text.Text = FText::AsCultureInvariant(FName::NameToDisplayString(GetSimpleTagName(DesiredStance).ToString(), false));
+	Text.Draw(Canvas->Canvas, {HorizontalLocation + ColumnOffset, VerticalLocation});
+
+	VerticalLocation += RowOffset;
+
+	static const auto StanceText{
+		FText::AsCultureInvariant(FName::NameToDisplayString(GET_MEMBER_NAME_STRING_CHECKED(ThisClass, Stance), false))
+	};
+
+	Text.Text = StanceText;
+	Text.Draw(Canvas->Canvas, {HorizontalLocation, VerticalLocation});
+
+	Text.Text = FText::AsCultureInvariant(FName::NameToDisplayString(GetSimpleTagName(Stance).ToString(), false));
+	Text.Draw(Canvas->Canvas, {HorizontalLocation + ColumnOffset, VerticalLocation});
+
+	VerticalLocation += RowOffset;
+
+	static const auto DesiredGaitText{
+		FText::AsCultureInvariant(FName::NameToDisplayString(GET_MEMBER_NAME_STRING_CHECKED(ThisClass, DesiredGait), false))
+	};
+
+	Text.Text = DesiredGaitText;
+	Text.Draw(Canvas->Canvas, {HorizontalLocation, VerticalLocation});
+
+	Text.Text = FText::AsCultureInvariant(FName::NameToDisplayString(GetSimpleTagName(DesiredGait).ToString(), false));
+	Text.Draw(Canvas->Canvas, {HorizontalLocation + ColumnOffset, VerticalLocation});
+
+	VerticalLocation += RowOffset;
+
+	static const auto GaitText{
+		FText::AsCultureInvariant(FName::NameToDisplayString(GET_MEMBER_NAME_STRING_CHECKED(ThisClass, Gait), false))
+	};
+
+	Text.Text = GaitText;
+	Text.Draw(Canvas->Canvas, {HorizontalLocation, VerticalLocation});
+
+	Text.Text = FText::AsCultureInvariant(FName::NameToDisplayString(GetSimpleTagName(Gait).ToString(), false));
+	Text.Draw(Canvas->Canvas, {HorizontalLocation + ColumnOffset, VerticalLocation});
+
+	VerticalLocation += RowOffset;
+
+	static const auto LocomotionActionText{
+		FText::AsCultureInvariant(FName::NameToDisplayString(GET_MEMBER_NAME_STRING_CHECKED(ThisClass, LocomotionAction), false))
+	};
+
+	Text.Text = LocomotionActionText;
+	Text.Draw(Canvas->Canvas, {HorizontalLocation, VerticalLocation});
+
+	Text.Text = FText::AsCultureInvariant(FName::NameToDisplayString(GetSimpleTagName(LocomotionAction).ToString(), false));
+	Text.Draw(Canvas->Canvas, {HorizontalLocation + ColumnOffset, VerticalLocation});
+
+	VerticalLocation += RowOffset;
+}
+
+FName AISACharacter::GetSimpleTagName(const FGameplayTag& Tag)
+{
+	const auto TagNode{UGameplayTagsManager::Get().FindTagNode(Tag)};
+
+	return TagNode.IsValid() ? TagNode->GetSimpleTagName() : NAME_None;
+}
+
+
+

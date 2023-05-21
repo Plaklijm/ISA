@@ -212,6 +212,12 @@ public:
 	void NotifyLocomotionActionChanged(const FGameplayTag& PreviousLocomotionAction);
 
 #pragma endregion
+
+	virtual void DisplayDebug(UCanvas* Canvas, const FDebugDisplayInfo& DebugDisplay, float& YL, float& YPos) override;
+	
+	void DisplayDebugStateInfo(const UCanvas* Canvas, const float Scale, const float HorizontalLocation, float& VerticalLocation) const;
+	
+	static FName GetSimpleTagName(const FGameplayTag& Tag);
 };
 
 #pragma region TagGettersImplementation
