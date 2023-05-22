@@ -98,11 +98,16 @@ void AISACharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInput
 
 void AISACharacter::Jump()
 {
+	UE_LOG(LogTemp, Warning, TEXT("Wants to jump"));
+	
 	bPressedISAJump = true;
-
-	Super::Jump();
-
-	bPressedJump = false;
+	
+	if (Stance == ISAStanceTags::Standing && !LocomotionAction.IsValid() &&
+	LocomotionMode == ISALocomotionModeTags::Grounded)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Jumped!"));
+		Super::Jump();
+	}
 }
 
 void AISACharacter::StopJumping()
@@ -110,6 +115,25 @@ void AISACharacter::StopJumping()
 	bPressedISAJump = false;
 
 	Super::StopJumping();
+}
+
+bool AISACharacter::CanCrouch() const
+{
+	return ISACharacterMovementComponent->bWantsToCrouch || Super::CanCrouch();
+}
+
+void AISACharacter::OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
+{
+	Super::OnStartCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
+
+	SetStance(ISAStanceTags::Crouching);
+}
+
+void AISACharacter::OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
+{
+	Super::OnEndCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
+
+	SetStance(ISAStanceTags::Standing);
 }
 
 void AISACharacter::SetDebugCommand()

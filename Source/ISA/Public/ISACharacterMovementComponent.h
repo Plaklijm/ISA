@@ -53,7 +53,7 @@ private:
 public:
 	UISACharacterMovementComponent();
 	// Actor Component
-protected:
+protected: 
 	virtual void InitializeComponent() override;
 	// Character Movement Component
 public:

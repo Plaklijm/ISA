@@ -79,6 +79,10 @@ protected:
 public:
 	virtual void Jump() override;
 	virtual void StopJumping() override;
+
+	virtual bool CanCrouch() const override;
+	virtual void OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
+	virtual void OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
 	void SetDebugCommand();
 
 protected:
