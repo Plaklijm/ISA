@@ -98,14 +98,11 @@ void AISACharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInput
 
 void AISACharacter::Jump()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Wants to jump"));
-	
 	bPressedISAJump = true;
 	
 	if (Stance == ISAStanceTags::Standing && !LocomotionAction.IsValid() &&
 	LocomotionMode == ISALocomotionModeTags::Grounded)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Jumped!"));
 		Super::Jump();
 	}
 }
