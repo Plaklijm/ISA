@@ -324,7 +324,7 @@ void AISACharacter::RefreshGait()
 
 	const auto MaxAllowedGait{CalculateMaxAllowedGait()};
 
-	//Set CMC MaxAllowedGait sets the maxwalk speed based on currently max allowed gait
+	//Set CMC MaxAllowedGait, sets the maxwalk speed based on currently max allowed gait
 
 	SetGait(CalculateActualGait(MaxAllowedGait));
 }
