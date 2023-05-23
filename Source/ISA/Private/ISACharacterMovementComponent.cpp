@@ -3,7 +3,6 @@
 
 #include "ISACharacterMovementComponent.h"
 
-#include "ISACharacter.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/Character.h"
 
@@ -20,7 +19,7 @@ void UISACharacterMovementComponent::InitializeComponent()
 	Super::InitializeComponent();
 
 	//Sets character variable
-	ISACharacterOwner = Cast<AISACharacter>(GetOwner());
+	ISACharacterBase = Cast<AISACharacterBase>(GetOwner());
 }
 
 // Getters / Helpers
@@ -37,7 +36,7 @@ bool UISACharacterMovementComponent::CanCrouchInCurrentState() const
 float UISACharacterMovementComponent::GetMaxSpeed() const
 {
 	//returns max speed depending on MovementMode
-	if (IsMovementMode(MOVE_Walking) && bWantsToSprint && !IsCrouching()) return MaxSprintSpeed;
+	if (IsMovementMode(MOVE_Walking) && bWantsToSprint && !IsCrouching()) return MaxWalkSpeed;
 
 	if (MovementMode != MOVE_Custom) return Super::GetMaxSpeed();
 
@@ -128,7 +127,7 @@ float UISACharacterMovementComponent::GetMaxBrakingDeceleration() const
 
 		if (PreviousMovementMode == MOVE_Custom && PreviousCustomMode == CMOVE_Slide) ExitSlide();
 
-		if (IsCustomMovementMode(CMOVE_Slide)) EnterSlide(PreviousMovementMode, (ECustomMovementMode)PreviousCustomMode);
+		if (IsCustomMovementMode(CMOVE_Slide)) EnterSlide(PreviousMovementMode, static_cast<ECustomMovementMode>(PreviousCustomMode));
 
 		if (IsFalling())
 		{
@@ -162,7 +161,7 @@ bool UISACharacterMovementComponent::CanSlide() const
 	FVector Start = UpdatedComponent->GetComponentLocation();
 	FVector End = Start + CapHH() * 2.5f * FVector::DownVector;
 	FName ProfileName = TEXT("BlockAll");
-	bool bValidSurface = GetWorld()->LineTraceTestByProfile(Start, End, ProfileName, ISACharacterOwner->GetIgnoreCharacterParams());
+	bool bValidSurface = GetWorld()->LineTraceTestByProfile(Start, End, ProfileName, ISACharacterBase->GetIgnoreCharacterParams());
 	bool bEnoughSpeed = Velocity.SizeSquared() > pow(MinSlideSpeed, 2);
 
 	return bValidSurface && bEnoughSpeed;
@@ -390,6 +389,32 @@ float UISACharacterMovementComponent::CapHH() const
 void UISACharacterMovementComponent::SetupInputDirection(FVector NewInputDirection)
 {
 	bHasInput = NewInputDirection.GetSafeNormal().SizeSquared() > UE_KINDA_SMALL_NUMBER;
+}
+
+void UISACharacterMovementComponent::SetStance(const FGameplayTag& NewStance)
+{
+	if (Stance != NewStance)
+	{
+		Stance = NewStance;
+
+		RefreshMaxWalkSpeed();
+	}
+}
+
+void UISACharacterMovementComponent::SetMaxAllowedGait(const FGameplayTag& NewMaxAllowedGait)
+{
+	if (MaxAllowedGait != NewMaxAllowedGait)
+	{
+		MaxAllowedGait = NewMaxAllowedGait;
+
+		RefreshMaxWalkSpeed();
+	}
+}
+
+void UISACharacterMovementComponent::RefreshMaxWalkSpeed()
+{
+	MaxWalkSpeed = Settings->GetSpeedForGait(MaxAllowedGait);
+	MaxWalkSpeedCrouched = MaxWalkSpeed;
 }
 
 #pragma endregion

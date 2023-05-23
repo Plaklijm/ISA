@@ -1,6 +1,6 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-#include "ISACharacter.h"
+#include "ISACharacterBase.h"
 
 #include "CanvasItem.h"
 #include "ISACharacterMovementComponent.h"
@@ -15,12 +15,11 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Engine/Canvas.h"
-#include "Net/Core/PushModel/PushModel.h"
 
 
 // AISACharacter
 
-AISACharacter::AISACharacter(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer.SetDefaultSubobjectClass<UISACharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
+AISACharacterBase::AISACharacterBase(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer.SetDefaultSubobjectClass<UISACharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
 {
 	PrimaryActorTick.bCanEverTick = true;
 	// Set default CMC 
@@ -61,45 +60,14 @@ AISACharacter::AISACharacter(const FObjectInitializer& ObjectInitializer) : Supe
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
 }
 
-void AISACharacter::BeginPlay()
+void AISACharacterBase::BeginPlay()
 {
 	// Call the base class  
 	Super::BeginPlay();
-
-	//Add Input Mapping Context
-	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
-	{
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
-		{
-			Subsystem->AddMappingContext(DefaultMappingContext, 0);
-		}
-	}
 }
 
-//////////////////////////////////////////////////////////////////////////
-// Input
-
-void AISACharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
+void AISACharacterBase::Jump()
 {
-	// Set up action bindings
-	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent)) 
-	{
-		//Jumping
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
-
-		//Moving
-		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AISACharacter::Move);
-
-		//Debug
-		EnhancedInputComponent->BindAction(DebugCommand, ETriggerEvent::Started, this, &AISACharacter::SetDebugCommand);
-	}
-}
-
-void AISACharacter::Jump()
-{
-	bPressedISAJump = true;
-	
 	if (Stance == ISAStanceTags::Standing && !LocomotionAction.IsValid() &&
 	LocomotionMode == ISALocomotionModeTags::Grounded)
 	{
@@ -107,62 +75,47 @@ void AISACharacter::Jump()
 	}
 }
 
-void AISACharacter::StopJumping()
+void AISACharacterBase::StopJumping()
 {
-	bPressedISAJump = false;
-
 	Super::StopJumping();
 }
 
-bool AISACharacter::CanCrouch() const
+bool AISACharacterBase::CanCrouch() const
 {
-	return ISACharacterMovementComponent->bWantsToCrouch || Super::CanCrouch();
+	return bIsCrouched || Super::CanCrouch();
 }
 
-void AISACharacter::OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
+void AISACharacterBase::OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
 {
 	Super::OnStartCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
 
 	SetStance(ISAStanceTags::Crouching);
 }
 
-void AISACharacter::OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
+void AISACharacterBase::OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
 {
 	Super::OnEndCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
 
 	SetStance(ISAStanceTags::Standing);
 }
 
-void AISACharacter::SetDebugCommand()
+bool AISACharacterBase::CanSprint() const
+{
+	if (!GetISACharacterMovement()->bHasInput || Stance != ISAStanceTags::Standing)
+	{
+		return false;
+	}
+	
+	return  true;
+}
+
+void AISACharacterBase::SetDebugCommand()
 {
 	//Inserts the showdebug Command into the cmd, executed when the debug button gets pressed
 	GetNetOwningPlayer()->ConsoleCommand("showdebug");
 }
 
-void AISACharacter::Move(const FInputActionValue& Value)
-{
-	// input is a Vector2D
-	FVector2D MovementVector = Value.Get<FVector2D>();
-
-	if (Controller != nullptr)
-	{
-		// find out which way is forward
-		const FRotator Rotation = Controller->GetControlRotation();
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
-
-		// get forward vector
-		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-	
-		// get right vector 
-		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-
-		// add movement 
-		AddMovementInput(ForwardDirection, MovementVector.Y);
-		AddMovementInput(RightDirection, MovementVector.X);
-	}
-}
-
-FCollisionQueryParams AISACharacter::GetIgnoreCharacterParams() const
+FCollisionQueryParams AISACharacterBase::GetIgnoreCharacterParams() const
 {
 	// Ignore character when raycasting
 	FCollisionQueryParams Params;
@@ -175,12 +128,14 @@ FCollisionQueryParams AISACharacter::GetIgnoreCharacterParams() const
 	return Params;
 }
 
-void AISACharacter::Tick(float DeltaTime)
+void AISACharacterBase::Tick(float DeltaTime)
 {
+	RefreshLocomotion(DeltaTime);
+	
 	Super::Tick(DeltaTime);
 }
 
-void AISACharacter::OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode)
+void AISACharacterBase::OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode)
 {
 	//Checks if the player is on the ground or in the air, set the locomotionmode accordingly
 	switch (GetCharacterMovement()->MovementMode)
@@ -201,7 +156,12 @@ void AISACharacter::OnMovementModeChanged(EMovementMode PreviousMovementMode, ui
 	Super::OnMovementModeChanged(PreviousMovementMode, PreviousCustomMode);
 }
 
-void AISACharacter::SetLocomotionMode(const FGameplayTag& NewLocomotionMode)
+void AISACharacterBase::RefreshLocomotion(const float DeltaTime)
+{
+	GetISACharacterMovement()->Speed = UE_REAL_TO_FLOAT(GetISACharacterMovement()->Velocity.Size2D());
+}
+
+void AISACharacterBase::SetLocomotionMode(const FGameplayTag& NewLocomotionMode)
 {
 	//checks if the new mode is not the old one
 	if (LocomotionMode != NewLocomotionMode)
@@ -216,38 +176,33 @@ void AISACharacter::SetLocomotionMode(const FGameplayTag& NewLocomotionMode)
 
 }
 
-void AISACharacter::NotifyLocomotionModeChanged(const FGameplayTag& PreviousLocomotionMode)
+void AISACharacterBase::NotifyLocomotionModeChanged(const FGameplayTag& PreviousLocomotionMode)
 {
 	ApplyDesiredStance();
 
 	if (LocomotionMode == ISALocomotionModeTags::Grounded && PreviousLocomotionMode == ISALocomotionModeTags::InAir)
 	{
-		UE_LOG(LogTemp, Error, TEXT("%f"), ISACharacterMovementComponent->Velocity.Z)
+		/*UE_LOG(LogTemp, Error, TEXT("%f"), ISACharacterMovementComponent->Velocity.Z)
 		if (GetISACharacterMovement()->Velocity.Z <= -Settings->TestValue)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("StartRolling"));
 			//StartRolling
 			//Fix Velocity.Z (cant get value out of it for some reason)
 
-		}
-		else
-		{
+		}*/
+		
 			ISACharacterMovementComponent->BrakingFrictionFactor = ISACharacterMovementComponent->bHasInput 
 																									? Settings->HasInputBrakingFrictionFactor 
 																									: Settings->NoInputBrakingFrictionFactor;
 
 			GetWorldTimerManager().SetTimer(BrakingFrictionFactorResetTimer,
 				FTimerDelegate::CreateWeakLambda(this, [this]
-					{
-						GetISACharacterMovement()->BrakingFrictionFactor = 1.0f;
-						UE_LOG(LogTemp, Warning, TEXT("Braking = 0"));
-					}), 0.5f, false);
-			UE_LOG(LogTemp, Warning, TEXT("ELSE"));
-		}
+					{ GetISACharacterMovement()->BrakingFrictionFactor = 1.0f; }), 0.5f, false);
+		
 	}
 }
 
-void AISACharacter::SetDesiredStance(const FGameplayTag& NewDesiredStance)
+void AISACharacterBase::SetDesiredStance(const FGameplayTag& NewDesiredStance)
 {
 	//Sets the stance the player wants to be in. This essentially queues the stance for it to be applied
 	if (DesiredStance != NewDesiredStance)
@@ -256,10 +211,9 @@ void AISACharacter::SetDesiredStance(const FGameplayTag& NewDesiredStance)
 
 		ApplyDesiredStance();
 	}
-	
 }
 
-void AISACharacter::ApplyDesiredStance()
+void AISACharacterBase::ApplyDesiredStance()
 {
 	if (!LocomotionAction.IsValid())
 	{
@@ -285,7 +239,7 @@ void AISACharacter::ApplyDesiredStance()
 	}
 }
 
-void AISACharacter::SetStance(const FGameplayTag& NewStance)
+void AISACharacterBase::SetStance(const FGameplayTag& NewStance)
 {
 	//Set stance in the CMC function needs to be implemented
 
@@ -299,7 +253,7 @@ void AISACharacter::SetStance(const FGameplayTag& NewStance)
 	}
 }
 
-void AISACharacter::SetDesiredGait(const FGameplayTag& NewDesiredGait)
+void AISACharacterBase::SetDesiredGait(const FGameplayTag& NewDesiredGait)
 {
 	if (DesiredGait != NewDesiredGait)
 	{
@@ -307,7 +261,7 @@ void AISACharacter::SetDesiredGait(const FGameplayTag& NewDesiredGait)
 	}
 }
 
-void AISACharacter::SetGait(const FGameplayTag& NewGait)
+void AISACharacterBase::SetGait(const FGameplayTag& NewGait)
 {
 	if (Gait != NewGait)
 	{
@@ -315,7 +269,7 @@ void AISACharacter::SetGait(const FGameplayTag& NewGait)
 	}
 }
 
-void AISACharacter::RefreshGait()
+void AISACharacterBase::RefreshGait()
 {
 	if (LocomotionMode != ISALocomotionModeTags::Grounded)
 	{
@@ -324,12 +278,12 @@ void AISACharacter::RefreshGait()
 
 	const auto MaxAllowedGait{CalculateMaxAllowedGait()};
 
-	//Set CMC MaxAllowedGait, sets the maxwalk speed based on currently max allowed gait
+	ISACharacterMovementComponent->SetMaxAllowedGait(MaxAllowedGait);
 
 	SetGait(CalculateActualGait(MaxAllowedGait));
 }
 
-FGameplayTag AISACharacter::CalculateMaxAllowedGait() const
+FGameplayTag AISACharacterBase::CalculateMaxAllowedGait() const
 {
 	//This represents the maximum gait the character is currently allowed to be in and can be determined by 
 	//desired gait, stance etc (If you want to force the character to be in a Gait based on something you can do it here)
@@ -338,7 +292,7 @@ FGameplayTag AISACharacter::CalculateMaxAllowedGait() const
 		return DesiredGait;
 	}
 
-	if (true/*canSprint function*/)
+	if (CanSprint())
 	{
 		return ISAGaitTags::Sprinting;
 	}
@@ -346,25 +300,25 @@ FGameplayTag AISACharacter::CalculateMaxAllowedGait() const
 	return ISAGaitTags::Running;
 }
 
-FGameplayTag AISACharacter::CalculateActualGait(const FGameplayTag& MaxAllowedGait) const
+FGameplayTag AISACharacterBase::CalculateActualGait(const FGameplayTag& MaxAllowedGait) const
 {
 	//Calculates the actual gait the player is in, this can differ from the desired or max allowed gait,
 	//When sprinting to walking youll only be in the walking gait when you decelerate enough to be considerd walking
 	
-	/*if (LocomotionState.Speed < ISACharacterMovement->GetGaitSettings().WalkSpeed + 10.0f)
+	if (GetISACharacterMovement()->Speed < Settings->WalkSpeed + 10.0f)
 	{
 		return ISAGaitTags::Walking;
 	}
 
-	if (LocomotionState.Speed < ISACharacterMovement->GetGaitSettings().RunSpeed + 10.0f || MaxAllowedGait != ISAGaitTags::Sprinting)
+	if (GetISACharacterMovement()->Speed < Settings->RunSpeed + 10.0f || MaxAllowedGait != ISAGaitTags::Sprinting)
 	{
 		return ISAGaitTags::Running;
 	}
-	*/
+
 	return ISAGaitTags::Sprinting;
 }
 
-void AISACharacter::SetLocomotionAction(const FGameplayTag& NewLocomotionAction)
+void AISACharacterBase::SetLocomotionAction(const FGameplayTag& NewLocomotionAction)
 {
 	if (LocomotionAction != NewLocomotionAction)
 	{
@@ -376,14 +330,14 @@ void AISACharacter::SetLocomotionAction(const FGameplayTag& NewLocomotionAction)
 	}
 }
 
-void AISACharacter::NotifyLocomotionActionChanged(const FGameplayTag& PreviousLocomotionAction)
+void AISACharacterBase::NotifyLocomotionActionChanged(const FGameplayTag& PreviousLocomotionAction)
 {
 	ApplyDesiredStance();
 }
 
 #pragma region Debug
 
-void AISACharacter::DisplayDebug(UCanvas* Canvas, const FDebugDisplayInfo& DebugDisplay, float& YL, float& YPos)
+void AISACharacterBase::DisplayDebug(UCanvas* Canvas, const FDebugDisplayInfo& DebugDisplay, float& YL, float& YPos)
 {
 	//Display debug and sends the correct information to the stateinfo function
 	const auto Scale{FMath::Min(Canvas->SizeX / (1280.0f * Canvas->GetDPIScale()), Canvas->SizeY / (720.0f * Canvas->GetDPIScale()))};
@@ -392,7 +346,7 @@ void AISACharacter::DisplayDebug(UCanvas* Canvas, const FDebugDisplayInfo& Debug
 	Super::DisplayDebug(Canvas, DebugDisplay, YL, YPos);
 }
 
-void AISACharacter::DisplayDebugStateInfo(const UCanvas* Canvas, const float Scale, const float HorizontalLocation,
+void AISACharacterBase::DisplayDebugStateInfo(const UCanvas* Canvas, const float Scale, const float HorizontalLocation,
                                           float& VerticalLocation) const
 {
 	//Function directly copied from ALS, Gets all the state information and displays it in the debug mode in editor
@@ -491,7 +445,7 @@ void AISACharacter::DisplayDebugStateInfo(const UCanvas* Canvas, const float Sca
 	VerticalLocation += RowOffset;
 }
 
-FName AISACharacter::GetSimpleTagName(const FGameplayTag& Tag)
+FName AISACharacterBase::GetSimpleTagName(const FGameplayTag& Tag)
 {
 	const auto TagNode{UGameplayTagsManager::Get().FindTagNode(Tag)};
 

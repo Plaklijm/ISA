@@ -8,10 +8,10 @@
 #include "Utility/ISAGameplayTags.h"
 #include "ISA.h"
 
-#include "ISACharacter.generated.h"
+#include "ISACharacterBase.generated.h"
 
 UCLASS(config=Game)
-class AISACharacter : public ACharacter
+class AISACharacterBase : public ACharacter
 {
 	GENERATED_BODY()
 
@@ -50,31 +50,12 @@ private:
 	//Follow camera
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FollowCamera;
-	
-	//MappingContext
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	class UInputMappingContext* DefaultMappingContext;
-
-	//Jump Input Action
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	class UInputAction* JumpAction;
-
-	//Move Input Action
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	class UInputAction* MoveAction;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	class UInputAction* DebugCommand;
 
 public:
 	bool bPressedISAJump;
 
 public:
-	AISACharacter(const FObjectInitializer& ObjectInitializer);
-	
-protected:
-	// Called for movement input
-	void Move(const FInputActionValue& Value);
+	AISACharacterBase(const FObjectInitializer& ObjectInitializer);
 
 public:
 	virtual void Jump() override;
@@ -83,14 +64,13 @@ public:
 	virtual bool CanCrouch() const override;
 	virtual void OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
 	virtual void OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
-	void SetDebugCommand();
 
-protected:
-	// APawn interface
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	bool CanSprint() const;
 	
+	void SetDebugCommand();
+protected:
 	// To add mapping context
-	virtual void BeginPlay();
+	virtual void BeginPlay() override;
 
 public:
 	//Returns CameraBoom subobject
@@ -165,6 +145,9 @@ private:
 public:
 	virtual void OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode = 0) override;
 
+private:
+	void RefreshLocomotion(const float DeltaTime);
+	
 #pragma region GameplayTags
 //Locomotion Mode
 private:
@@ -230,15 +213,15 @@ public:
 };
 
 #pragma region TagGettersImplementation
-inline const FGameplayTag& AISACharacter::GetDesiredStance() const { return DesiredStance; }
+inline const FGameplayTag& AISACharacterBase::GetDesiredStance() const { return DesiredStance; }
 
-inline const FGameplayTag& AISACharacter::GetDesiredGait() const { return DesiredGait; }
+inline const FGameplayTag& AISACharacterBase::GetDesiredGait() const { return DesiredGait; }
 
-inline const FGameplayTag& AISACharacter::GetLocomotionMode() const { return LocomotionMode; }
+inline const FGameplayTag& AISACharacterBase::GetLocomotionMode() const { return LocomotionMode; }
 
-inline const FGameplayTag& AISACharacter::GetLocomotionAction() const { return LocomotionAction; }
+inline const FGameplayTag& AISACharacterBase::GetLocomotionAction() const { return LocomotionAction; }
 
-inline const FGameplayTag& AISACharacter::GetStance() const { return Stance; }
+inline const FGameplayTag& AISACharacterBase::GetStance() const { return Stance; }
 
-inline const FGameplayTag& AISACharacter::GetGait() const { return Gait; }
+inline const FGameplayTag& AISACharacterBase::GetGait() const { return Gait; }
 #pragma endregion

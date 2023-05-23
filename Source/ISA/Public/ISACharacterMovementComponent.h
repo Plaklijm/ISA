@@ -5,6 +5,9 @@
 #include "CoreMinimal.h"
 #include "ISA.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "ISACharacterBase.h"
+#include "Utility/ISAGameplayTags.h"
+#include "Utility/ISASettings.h"
 #include "ISACharacterMovementComponent.generated.h"
 
 UENUM(BlueprintType)
@@ -22,10 +25,12 @@ class ISA_API UISACharacterMovementComponent : public UCharacterMovementComponen
 	GENERATED_BODY()
 
 
-#pragma region Parameters 
+#pragma region Parameters
+public:
+		UPROPERTY(EditDefaultsOnly) float Speed = 0;
+	
 private:
 		// Parameters
-		UPROPERTY(EditDefaultsOnly) float MaxSprintSpeed = 750.f;
 
 	#pragma region Slide
 		UPROPERTY(EditDefaultsOnly) float MinSlideSpeed = 400.f;
@@ -36,11 +41,11 @@ private:
 		UPROPERTY(EditDefaultsOnly) float BrakingDecelerationSliding = 1000.f;
 	#pragma endregion	
 		// Transient
-		UPROPERTY(Transient) AISACharacter* ISACharacterOwner;
+		UPROPERTY(Transient) AISACharacterBase* ISACharacterBase;
 
 	#pragma region Flags
 public:
-		bool bHasInput = false;
+		bool bHasInput{false};
 private:
 		bool bWantsToSprint;
 
@@ -48,6 +53,17 @@ private:
 		bool bPrevWantsToCrouch;
 	#pragma endregion
 
+protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State", Transient)
+	FGameplayTag MaxAllowedGait{ISAGaitTags::Walking};
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State", Transient)
+	FGameplayTag Stance{ISAStanceTags::Standing};
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|ISA Character")
+	TObjectPtr<UISASettings> Settings;
+	
+	
 #pragma endregion
 
 public:
@@ -84,6 +100,16 @@ private:
 	float CapHH() const;
 	void SetupInputDirection(FVector NewInputDirection);
 
+public:
+	void SetStance(const FGameplayTag& NewStance);
+
+	void SetMaxAllowedGait(const FGameplayTag& NewMaxAllowedGait);
+
+private:
+	void RefreshMaxWalkSpeed();
+
+	void RefreshGaitSettings();
+	
 	// Interface
 public:
 	UFUNCTION(BlueprintCallable) void SprintPressed();
