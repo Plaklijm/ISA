@@ -28,7 +28,7 @@ class ISA_API UISACharacterMovementComponent : public UCharacterMovementComponen
 #pragma region Parameters
 public:
 		UPROPERTY(EditDefaultsOnly) float Speed = 0;
-	
+
 private:
 		// Parameters
 
@@ -46,6 +46,7 @@ private:
 	#pragma region Flags
 public:
 		bool bHasInput{false};
+		bool bCanSprint{false};
 private:
 		bool bWantsToSprint;
 

@@ -25,7 +25,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Tags|ISA Character", Transient)
 	FGameplayTag DesiredStance { ISAStanceTags::Standing };
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Tags|ISA Character", Transient)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Tags|ISA Character", Replicated)
 	FGameplayTag DesiredGait { ISAGaitTags::Walking };
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Tags|ISA Character", Transient)
@@ -68,6 +68,8 @@ public:
 	bool CanSprint() const;
 	
 	void SetDebugCommand();
+
+	virtual void PreRegisterAllComponents() override;
 protected:
 	// To add mapping context
 	virtual void BeginPlay() override;

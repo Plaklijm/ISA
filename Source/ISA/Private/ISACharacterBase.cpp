@@ -2,6 +2,8 @@
 
 #include "ISACharacterBase.h"
 
+#include <string>
+
 #include "CanvasItem.h"
 #include "ISACharacterMovementComponent.h"
 #include "Utility/ISASettings.h"
@@ -12,8 +14,6 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
-#include "EnhancedInputComponent.h"
-#include "EnhancedInputSubsystems.h"
 #include "Engine/Canvas.h"
 
 
@@ -34,14 +34,14 @@ AISACharacterBase::AISACharacterBase(const FObjectInitializer& ObjectInitializer
 
 	// Configure character movement
 	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...	
-	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f); // ...at this rotation rate
+	GetCharacterMovement()->RotationRate = FRotator(0.0f, 350.0f, 0.0f); // ...at this rotation rate
 	GetCharacterMovement()->bCanWalkOffLedgesWhenCrouching = true;
 
 	// Note: For faster iteration times these variables, and many more, can be tweaked in the Character Blueprint
 	// instead of recompiling to adjust them
-	GetCharacterMovement()->JumpZVelocity = 700.f;
-	GetCharacterMovement()->AirControl = 0.35f;
-	GetCharacterMovement()->MaxWalkSpeed = 500.f;
+	GetCharacterMovement()->JumpZVelocity = 500.f;
+	GetCharacterMovement()->AirControl = 0.25f;
+	GetCharacterMovement()->MaxWalkSpeed = 175.f;
 	GetCharacterMovement()->MinAnalogWalkSpeed = 20.f;
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
 
@@ -64,6 +64,12 @@ void AISACharacterBase::BeginPlay()
 {
 	// Call the base class  
 	Super::BeginPlay();
+
+	ApplyDesiredStance();
+
+	ISACharacterMovementComponent->SetStance(Stance);
+
+	//RefreshGait();
 }
 
 void AISACharacterBase::Jump()
@@ -105,14 +111,27 @@ bool AISACharacterBase::CanSprint() const
 	{
 		return false;
 	}
+
+	if (GetISACharacterMovement()->bCanSprint)
+	{
+		
+	}
 	
-	return  true;
+	return  false;
 }
 
 void AISACharacterBase::SetDebugCommand()
 {
 	//Inserts the showdebug Command into the cmd, executed when the debug button gets pressed
 	GetNetOwningPlayer()->ConsoleCommand("showdebug");
+}
+
+void AISACharacterBase::PreRegisterAllComponents()
+{
+	Stance = DesiredStance;
+	Gait = DesiredGait;
+	
+	Super::PreRegisterAllComponents();
 }
 
 FCollisionQueryParams AISACharacterBase::GetIgnoreCharacterParams() const
@@ -241,7 +260,7 @@ void AISACharacterBase::ApplyDesiredStance()
 
 void AISACharacterBase::SetStance(const FGameplayTag& NewStance)
 {
-	//Set stance in the CMC function needs to be implemented
+	ISACharacterMovementComponent->SetStance(NewStance);
 
 	//Check if the current stance isnt the same as the new one
 	if (Stance != NewStance)
@@ -278,7 +297,7 @@ void AISACharacterBase::RefreshGait()
 
 	const auto MaxAllowedGait{CalculateMaxAllowedGait()};
 
-	ISACharacterMovementComponent->SetMaxAllowedGait(MaxAllowedGait);
+	GetISACharacterMovement()->SetMaxAllowedGait(MaxAllowedGait);
 
 	SetGait(CalculateActualGait(MaxAllowedGait));
 }
@@ -440,6 +459,14 @@ void AISACharacterBase::DisplayDebugStateInfo(const UCanvas* Canvas, const float
 	Text.Draw(Canvas->Canvas, {HorizontalLocation, VerticalLocation});
 
 	Text.Text = FText::AsCultureInvariant(FName::NameToDisplayString(GetSimpleTagName(LocomotionAction).ToString(), false));
+	Text.Draw(Canvas->Canvas, {HorizontalLocation + ColumnOffset, VerticalLocation});
+
+	VerticalLocation += RowOffset;
+
+	Text.Text = FText::FromString("Speed:");
+	Text.Draw(Canvas->Canvas, {HorizontalLocation, VerticalLocation});
+	
+	Text.Text = FText::AsNumber(GetISACharacterMovement()->MaxWalkSpeed);
 	Text.Draw(Canvas->Canvas, {HorizontalLocation + ColumnOffset, VerticalLocation});
 
 	VerticalLocation += RowOffset;
