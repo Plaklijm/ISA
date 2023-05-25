@@ -2,8 +2,6 @@
 
 #include "ISACharacterBase.h"
 
-#include <string>
-
 #include "CanvasItem.h"
 #include "ISACharacterMovementComponent.h"
 #include "Utility/ISASettings.h"
@@ -115,7 +113,7 @@ bool AISACharacterBase::CanSprint() const
 
 	if (GetISACharacterMovement()->bCanSprint)
 	{
-		
+		return true;
 	}
 	
 	return  false;
@@ -317,7 +315,11 @@ FGameplayTag AISACharacterBase::CalculateMaxAllowedGait() const
 	//desired gait, stance etc (If you want to force the character to be in a Gait based on something you can do it here)
 	if (DesiredGait != ISAGaitTags::Sprinting)
 	{
-		return DesiredGait;
+		if (DesiredGait != ISAGaitTags::Running)
+		{
+			return ISAGaitTags::Walking;
+		}
+		//return DesiredGait;
 	}
 
 	if (CanSprint())
@@ -325,7 +327,7 @@ FGameplayTag AISACharacterBase::CalculateMaxAllowedGait() const
 		return ISAGaitTags::Sprinting;
 	}
 
-	return ISAGaitTags::Walking;
+	return ISAGaitTags::Running;
 }
 
 FGameplayTag AISACharacterBase::CalculateActualGait(const FGameplayTag& MaxAllowedGait) const
@@ -333,12 +335,12 @@ FGameplayTag AISACharacterBase::CalculateActualGait(const FGameplayTag& MaxAllow
 	//Calculates the actual gait the player is in, this can differ from the desired or max allowed gait,
 	//When sprinting to walking youll only be in the walking gait when you decelerate enough to be considerd walking
 	
-	if (GetISACharacterMovement()->Speed < Settings->WalkSpeed + 10.0f)
+	if (GetISACharacterMovement()->Speed < Settings->WalkSpeed || MaxAllowedGait != ISAGaitTags::Running)
 	{
 		return ISAGaitTags::Walking;
 	}
 
-	if (GetISACharacterMovement()->Speed < Settings->RunSpeed + 10.0f || MaxAllowedGait != ISAGaitTags::Sprinting)
+	if (GetISACharacterMovement()->Speed < Settings->RunSpeed)
 	{
 		return ISAGaitTags::Running;
 	}
@@ -388,7 +390,7 @@ void AISACharacterBase::DisplayDebugStateInfo(const UCanvas* Canvas, const float
 		FLinearColor::White
 	};
 
-	Text.Scale = {Scale * 0.75f, Scale * 0.75f};
+	Text.Scale = {Scale, Scale};
 	Text.EnableShadow(FLinearColor::Black);
 
 	//init offsets

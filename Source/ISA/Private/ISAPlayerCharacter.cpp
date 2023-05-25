@@ -5,6 +5,7 @@
 
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "ISACharacterMovementComponent.h"
 
 
 void AISAPlayerCharacter::NotifyControllerChanged()
@@ -32,6 +33,7 @@ void AISAPlayerCharacter::SetupPlayerInputComponent(UInputComponent* Input)
 	if (IsValid(EnhancedInput))
 	{
 		EnhancedInput->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ThisClass::Input_OnMove);
+		EnhancedInput->BindAction(RunAction, ETriggerEvent::Triggered, this, &ThisClass::Input_OnRun);
 		EnhancedInput->BindAction(SprintAction, ETriggerEvent::Triggered, this, &ThisClass::Input_OnSprint);
 		EnhancedInput->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ThisClass::Input_OnJump);
 		EnhancedInput->BindAction(CrouchAction, ETriggerEvent::Triggered, this, &ThisClass::Input_OnCrouch);
@@ -62,9 +64,29 @@ void AISAPlayerCharacter::Input_OnMove(const FInputActionValue& ActionValue)
 	}
 }
 
+void AISAPlayerCharacter::Input_OnRun(const FInputActionValue& ActionValue)
+{
+	if (GetDesiredGait() == ISAGaitTags::Walking)
+	{
+		SetDesiredGait(ISAGaitTags::Running);
+	}
+	else if (GetDesiredGait() == ISAGaitTags::Running)
+	{
+		SetDesiredGait(ISAGaitTags::Walking);
+	}
+}
+
 void AISAPlayerCharacter::Input_OnSprint(const FInputActionValue& ActionValue)
 {
-	SetDesiredGait(ActionValue.Get<bool>() ? ISAGaitTags::Sprinting : ISAGaitTags::Running);
+	if (GetDesiredGait() == ISAGaitTags::Running)
+	{
+		SetDesiredGait(ISAGaitTags::Sprinting);
+	}
+	else if (GetDesiredGait() == ISAGaitTags::Sprinting)
+	{
+		SetDesiredGait(ISAGaitTags::Running);
+	}
+	GetISACharacterMovement()->bCanSprint = ActionValue.Get<bool>();
 }
 
 void AISAPlayerCharacter::Input_OnJump(const FInputActionValue& ActionValue)
