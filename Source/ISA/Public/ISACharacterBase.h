@@ -208,6 +208,16 @@ public:
 
 	void NotifyLocomotionActionChanged(const FGameplayTag& PreviousLocomotionAction);
 
+//Locomotion Actions
+public:
+	UFUNCTION(BlueprintNativeEvent, Category = "Als Character")
+	UAnimMontage* SelectRollMontage();
+protected:
+	void TryStartSliding();
+	bool IsAllowedToSlide(const UAnimMontage* Montage) const;
+	void StartSliding();
+	void StartSlidingImplementation(UAnimMontage* Montage);
+
 #pragma endregion
 	
 //Debug functions

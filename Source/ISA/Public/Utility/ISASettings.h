@@ -2,7 +2,21 @@
 
 #include "Engine/DataAsset.h"
 #include "Utility/ISAGameplayTags.h"
+#include "Animation/AnimMontage.h"
 #include "ISASettings.generated.h"
+
+USTRUCT(BlueprintType)
+struct ISA_API FISARollSettings
+{
+	GENERATED_BODY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ALS")
+	TObjectPtr<UAnimMontage> Montage{nullptr};
+
+	// If a character landed with a speed greater than the specified value, then start rolling.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ALS",
+		Meta = (ClampMin = 0, EditCondition = "bStartRollingOnLand", ForceUnits = "cm/s"))
+	float RollingOnLandSpeedThreshold{700.0f};
+};
 
 UCLASS(Blueprintable, BlueprintType)
 class ISA_API UISASettings : public UDataAsset
@@ -27,10 +41,16 @@ public:
 	
 	static constexpr auto HasInputBrakingFrictionFactor{ 0.5f };
 	static constexpr auto NoInputBrakingFrictionFactor{ 3.0f };
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings")
+	FISARollSettings RollSettings;
 
 public:
 	float GetSpeedForGait(const FGameplayTag& Gait, const FGameplayTag& Stance) const;
+	
 };
+
+
 
 inline float UISASettings::GetSpeedForGait(const FGameplayTag& Gait, const FGameplayTag& Stance) const
 {

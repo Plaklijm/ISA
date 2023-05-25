@@ -117,6 +117,7 @@ void AISAPlayerCharacter::Input_OnCrouch()
 	if (GetDesiredStance() == ISAStanceTags::Standing)
 	{
 		SetDesiredStance(ISAStanceTags::Crouching);
+		TryStartSliding();
 	}
 	else if (GetDesiredStance() == ISAStanceTags::Crouching)
 	{

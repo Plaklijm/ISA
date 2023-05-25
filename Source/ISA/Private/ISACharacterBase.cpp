@@ -365,6 +365,52 @@ void AISACharacterBase::NotifyLocomotionActionChanged(const FGameplayTag& Previo
 	ApplyDesiredStance();
 }
 
+UAnimMontage* AISACharacterBase::SelectRollMontage_Implementation()
+{
+	UE_LOG(LogTemp, Warning, TEXT("SELECTMONTAGE"));
+	return Settings->RollSettings.Montage;
+}
+
+void AISACharacterBase::TryStartSliding()
+{
+	UE_LOG(LogTemp, Warning, TEXT("TryStartSliding"));
+	if (LocomotionMode == ISALocomotionModeTags::Grounded)
+	{
+		StartSliding();
+	}
+}
+
+bool AISACharacterBase::IsAllowedToSlide(const UAnimMontage* Montage) const
+{
+	UE_LOG(LogTemp, Warning, TEXT("ISAllowedToSlide"));
+	return !LocomotionAction.IsValid() ||
+			   // ReSharper disable once CppRedundantParentheses
+			   (LocomotionAction == ISALocomotionActionTags::Rolling &&
+				!GetMesh()->GetAnimInstance()->Montage_IsPlaying(Montage));
+}
+
+void AISACharacterBase::StartSliding()
+{
+	UE_LOG(LogTemp, Warning, TEXT("START SLIDING"));
+	auto* Montage{SelectRollMontage()};
+
+	if (!ensure(IsValid(Montage)) || !IsAllowedToSlide(Montage))
+	{
+		return;
+	}
+
+	StartSlidingImplementation(Montage);
+	UE_LOG(LogTemp, Warning, TEXT("Sliding has started"));
+}
+
+void AISACharacterBase::StartSlidingImplementation(UAnimMontage* Montage)
+{
+	if (IsAllowedToSlide(Montage) && GetMesh()->GetAnimInstance()->Montage_Play(Montage))
+	{
+		SetLocomotionAction(ISALocomotionActionTags::Sliding);
+	}
+}
+
 #pragma region Debug
 
 void AISACharacterBase::DisplayDebug(UCanvas* Canvas, const FDebugDisplayInfo& DebugDisplay, float& YL, float& YPos)

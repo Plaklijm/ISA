@@ -157,14 +157,18 @@ void UISACharacterMovementComponent::ExitSlide()
 
 bool UISACharacterMovementComponent::CanSlide() const
 {
-	//Checks if the player can Slide
-	FVector Start = UpdatedComponent->GetComponentLocation();
-	FVector End = Start + CapHH() * 2.5f * FVector::DownVector;
-	FName ProfileName = TEXT("BlockAll");
-	bool bValidSurface = GetWorld()->LineTraceTestByProfile(Start, End, ProfileName, ISACharacterBase->GetIgnoreCharacterParams());
-	bool bEnoughSpeed = Velocity.SizeSquared() > pow(MinSlideSpeed, 2);
+	if (ISACharacterBase->GetLocomotionAction() == ISALocomotionActionTags::Sliding)
+	{
+		//Checks if the player can Slide
+		FVector Start = UpdatedComponent->GetComponentLocation();
+		FVector End = Start + CapHH() * 2.5f * FVector::DownVector;
+		FName ProfileName = TEXT("BlockAll");
+		bool bValidSurface = GetWorld()->LineTraceTestByProfile(Start, End, ProfileName, ISACharacterBase->GetIgnoreCharacterParams());
+		bool bEnoughSpeed = Velocity.SizeSquared() > pow(MinSlideSpeed, 2);
 
-	return bValidSurface && bEnoughSpeed;
+		return bValidSurface && bEnoughSpeed;
+	}
+	return false;
 }
 
 void UISACharacterMovementComponent::PhysSlide(float deltaTime, int32 Iterations)
