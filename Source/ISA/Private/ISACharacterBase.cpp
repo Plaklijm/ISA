@@ -325,7 +325,7 @@ FGameplayTag AISACharacterBase::CalculateMaxAllowedGait() const
 		return ISAGaitTags::Sprinting;
 	}
 
-	return ISAGaitTags::Running;
+	return ISAGaitTags::Walking;
 }
 
 FGameplayTag AISACharacterBase::CalculateActualGait(const FGameplayTag& MaxAllowedGait) const
