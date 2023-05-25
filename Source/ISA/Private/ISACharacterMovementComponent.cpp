@@ -425,20 +425,6 @@ void UISACharacterMovementComponent::RefreshMaxWalkSpeed()
 
 #pragma region Interface
 
-void UISACharacterMovementComponent::SprintPressed()
-{
-	bWantsToSprint = true;
-}
-void UISACharacterMovementComponent::SprintReleased()
-{
-	bWantsToSprint = false;
-}
-
-void UISACharacterMovementComponent::CrouchPressed()
-{
-	bWantsToCrouch = !bWantsToCrouch;
-}
-
 bool UISACharacterMovementComponent::IsCustomMovementMode(ECustomMovementMode InCustomMovementMode) const
 {
 	return MovementMode == MOVE_Custom && CustomMovementMode == InCustomMovementMode;

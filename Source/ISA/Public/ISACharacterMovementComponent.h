@@ -113,10 +113,6 @@ private:
 	
 	// Interface
 public:
-	UFUNCTION(BlueprintCallable) void SprintPressed();
-	UFUNCTION(BlueprintCallable) void SprintReleased();
-
-	UFUNCTION(BlueprintCallable) void CrouchPressed();
 
 	UFUNCTION(BlueprintPure) bool IsCustomMovementMode(ECustomMovementMode InCustomMovementMode) const;
 	UFUNCTION(BlueprintPure) bool IsMovementMode(EMovementMode InMovementMode) const;
