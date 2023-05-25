@@ -413,7 +413,7 @@ void UISACharacterMovementComponent::SetMaxAllowedGait(const FGameplayTag& NewMa
 
 void UISACharacterMovementComponent::RefreshMaxWalkSpeed()
 {
-	MaxWalkSpeed = Settings->GetSpeedForGait(MaxAllowedGait);
+	MaxWalkSpeed = Settings->GetSpeedForGait(MaxAllowedGait, Stance);
 	MaxWalkSpeedCrouched = MaxWalkSpeed;
 }
 

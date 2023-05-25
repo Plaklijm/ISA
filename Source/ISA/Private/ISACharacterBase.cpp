@@ -34,7 +34,7 @@ AISACharacterBase::AISACharacterBase(const FObjectInitializer& ObjectInitializer
 
 	// Configure character movement
 	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...	
-	GetCharacterMovement()->RotationRate = FRotator(0.0f, 350.0f, 0.0f); // ...at this rotation rate
+	GetCharacterMovement()->RotationRate = FRotator( 0.0f, 350.0f, 0.0f); // ...at this rotation rate
 	GetCharacterMovement()->bCanWalkOffLedgesWhenCrouching = true;
 
 	// Note: For faster iteration times these variables, and many more, can be tweaked in the Character Blueprint
@@ -62,6 +62,7 @@ AISACharacterBase::AISACharacterBase(const FObjectInitializer& ObjectInitializer
 
 void AISACharacterBase::BeginPlay()
 {
+	ensure(IsValid(Settings));
 	// Call the base class  
 	Super::BeginPlay();
 
@@ -69,7 +70,7 @@ void AISACharacterBase::BeginPlay()
 
 	ISACharacterMovementComponent->SetStance(Stance);
 
-	//RefreshGait();
+	RefreshGait();
 }
 
 void AISACharacterBase::Jump()
@@ -150,6 +151,8 @@ FCollisionQueryParams AISACharacterBase::GetIgnoreCharacterParams() const
 void AISACharacterBase::Tick(float DeltaTime)
 {
 	RefreshLocomotion(DeltaTime);
+
+	RefreshGait();
 	
 	Super::Tick(DeltaTime);
 }
@@ -284,9 +287,15 @@ void AISACharacterBase::SetGait(const FGameplayTag& NewGait)
 {
 	if (Gait != NewGait)
 	{
+		const auto PreviousGait{Gait};
+
 		Gait = NewGait;
+
+		OnGaitChanged(PreviousGait);
 	}
 }
+
+void AISACharacterBase::OnGaitChanged_Implementation(const FGameplayTag& PreviousGaitTag) {}
 
 void AISACharacterBase::RefreshGait()
 {

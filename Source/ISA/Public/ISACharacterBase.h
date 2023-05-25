@@ -196,6 +196,10 @@ private:
 public:
 	const FGameplayTag& GetGait() const;
 
+protected:
+	UFUNCTION(BlueprintNativeEvent, Category = "Als Character")
+	void OnGaitChanged(const FGameplayTag& PreviousGaitTag);
+
 //Locomotion Action
 public:
 	void SetLocomotionAction(const FGameplayTag& NewLocomotionAction);

@@ -21,30 +21,40 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ISA", Meta = (ClampMin = 0, ForceUnits = "cm/s"))
 	float SprintSpeed{650.0f};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ISA", Meta = (ClampMin = 0, ForceUnits = "cm/s"))
+	float CrouchSpeed{150.0f};
 	
 	static constexpr auto HasInputBrakingFrictionFactor{ 0.5f };
 	static constexpr auto NoInputBrakingFrictionFactor{ 3.0f };
 
 public:
-	float GetSpeedForGait(const FGameplayTag& Gait) const;
+	float GetSpeedForGait(const FGameplayTag& Gait, const FGameplayTag& Stance) const;
 };
 
-inline float UISASettings::GetSpeedForGait(const FGameplayTag& Gait) const
+inline float UISASettings::GetSpeedForGait(const FGameplayTag& Gait, const FGameplayTag& Stance) const
 {
-	if (Gait == ISAGaitTags::Walking)
+	if (Stance == ISAStanceTags::Standing)
 	{
-		return WalkSpeed;
-	}
+		if (Gait == ISAGaitTags::Walking)
+		{
+			return WalkSpeed;
+		}
 
-	if (Gait == ISAGaitTags::Running)
+		if (Gait == ISAGaitTags::Running)
+		{
+			return RunSpeed;
+		}
+
+		if (Gait == ISAGaitTags::Sprinting)
+		{
+			return SprintSpeed;
+		}
+	}
+	else if (Stance == ISAStanceTags::Crouching)
 	{
-		return RunSpeed;
+		return  CrouchSpeed;
 	}
-
-	if (Gait == ISAGaitTags::Sprinting)
-	{
-		return SprintSpeed;
-	}
-
+	
 	return 0.0f;
 }

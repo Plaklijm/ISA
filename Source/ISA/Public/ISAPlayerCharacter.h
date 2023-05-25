@@ -24,7 +24,7 @@ protected:
 	class UInputAction* SprintAction;
 
 	//Jump Input Action
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true")) 
 	class UInputAction* JumpAction;
 
 	//Crouch Input Action
