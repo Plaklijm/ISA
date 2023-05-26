@@ -6,7 +6,7 @@
 #include "ISASettings.generated.h"
 
 USTRUCT(BlueprintType)
-struct ISA_API FISARollSettings
+struct ISA_API FISASlideSettings
 {
 	GENERATED_BODY()
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ALS")
@@ -43,7 +43,7 @@ public:
 	static constexpr auto NoInputBrakingFrictionFactor{ 3.0f };
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings")
-	FISARollSettings RollSettings;
+	FISASlideSettings SlideSettings;
 
 public:
 	float GetSpeedForGait(const FGameplayTag& Gait, const FGameplayTag& Stance) const;

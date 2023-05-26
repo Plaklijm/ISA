@@ -22,7 +22,7 @@ protected:
 
 	//Run input Action
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	class UInputAction* RunAction;
+	class UInputAction* ForceModeAction;
 
 	//Sprint input Action
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
@@ -52,7 +52,7 @@ private:
 	//process input functions
 	void Input_OnMove(const FInputActionValue& ActionValue);
 
-	void Input_OnRun(const FInputActionValue& ActionValue);
+	void Input_OnForceMode(const FInputActionValue& ActionValue);
 
 	void Input_OnSprint(const FInputActionValue& ActionValue);
 

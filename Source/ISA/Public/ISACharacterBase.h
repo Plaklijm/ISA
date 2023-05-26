@@ -53,6 +53,10 @@ private:
 
 public:
 	bool bPressedISAJump;
+	UPROPERTY(VisibleAnywhere, Category = "Force ISA Player")
+	bool bForceWalkRun;
+	UPROPERTY(VisibleAnywhere, Category = "Force ISA Player")
+	bool bForceRunSprint;
 
 public:
 	AISACharacterBase(const FObjectInitializer& ObjectInitializer);
@@ -73,6 +77,8 @@ public:
 protected:
 	// To add mapping context
 	virtual void BeginPlay() override;
+
+	void SetForceGait(bool bWalk_Run, bool bRunSprint);
 
 public:
 	//Returns CameraBoom subobject

@@ -33,7 +33,7 @@ void AISAPlayerCharacter::SetupPlayerInputComponent(UInputComponent* Input)
 	if (IsValid(EnhancedInput))
 	{
 		EnhancedInput->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ThisClass::Input_OnMove);
-		EnhancedInput->BindAction(RunAction, ETriggerEvent::Triggered, this, &ThisClass::Input_OnRun);
+		EnhancedInput->BindAction(ForceModeAction, ETriggerEvent::Triggered, this, &ThisClass::Input_OnForceMode);
 		EnhancedInput->BindAction(SprintAction, ETriggerEvent::Triggered, this, &ThisClass::Input_OnSprint);
 		EnhancedInput->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ThisClass::Input_OnJump);
 		EnhancedInput->BindAction(CrouchAction, ETriggerEvent::Triggered, this, &ThisClass::Input_OnCrouch);
@@ -64,27 +64,29 @@ void AISAPlayerCharacter::Input_OnMove(const FInputActionValue& ActionValue)
 	}
 }
 
-void AISAPlayerCharacter::Input_OnRun(const FInputActionValue& ActionValue)
+void AISAPlayerCharacter::Input_OnForceMode(const FInputActionValue& ActionValue)
 {
-	if (GetDesiredGait() == ISAGaitTags::Walking)
+	
+	if (!ActionValue.Get<bool>())
 	{
-		SetDesiredGait(ISAGaitTags::Running);
+		SetForceGait(true, false);
 	}
-	else if (GetDesiredGait() == ISAGaitTags::Running)
+	else if (ActionValue.Get<bool>())
 	{
-		SetDesiredGait(ISAGaitTags::Walking);
+		SetForceGait(false, true);
 	}
 }
 
 void AISAPlayerCharacter::Input_OnSprint(const FInputActionValue& ActionValue)
 {
-	if (GetDesiredGait() == ISAGaitTags::Running)
+	UE_LOG(LogTemp, Warning, TEXT("%s"), ActionValue.Get<bool>() ? TEXT("True") : TEXT("False"));
+	if (bForceWalkRun)
 	{
-		SetDesiredGait(ISAGaitTags::Sprinting);
+		SetDesiredGait(ActionValue.Get<bool>() ? ISAGaitTags::Running : ISAGaitTags::Walking);
 	}
-	else if (GetDesiredGait() == ISAGaitTags::Sprinting)
+	else if (bForceRunSprint)
 	{
-		SetDesiredGait(ISAGaitTags::Running);
+		SetDesiredGait(ActionValue.Get<bool>() ? ISAGaitTags::Sprinting : ISAGaitTags::Running);
 	}
 	GetISACharacterMovement()->bCanSprint = ActionValue.Get<bool>();
 }
@@ -117,7 +119,7 @@ void AISAPlayerCharacter::Input_OnCrouch()
 	if (GetDesiredStance() == ISAStanceTags::Standing)
 	{
 		SetDesiredStance(ISAStanceTags::Crouching);
-		TryStartSliding();
+		//TryStartSliding();
 	}
 	else if (GetDesiredStance() == ISAStanceTags::Crouching)
 	{

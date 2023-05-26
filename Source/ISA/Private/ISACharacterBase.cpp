@@ -69,6 +69,14 @@ void AISACharacterBase::BeginPlay()
 	ISACharacterMovementComponent->SetStance(Stance);
 
 	RefreshGait();
+
+	SetForceGait(true, false);
+}
+
+void AISACharacterBase::SetForceGait(bool bWalk_Run, bool bRunSprint)
+{
+	bForceWalkRun = bWalk_Run;
+	bForceRunSprint = bRunSprint;
 }
 
 void AISACharacterBase::Jump()
@@ -313,21 +321,23 @@ FGameplayTag AISACharacterBase::CalculateMaxAllowedGait() const
 {
 	//This represents the maximum gait the character is currently allowed to be in and can be determined by 
 	//desired gait, stance etc (If you want to force the character to be in a Gait based on something you can do it here)
-	if (DesiredGait != ISAGaitTags::Sprinting)
+	if (bForceWalkRun)
 	{
-		if (DesiredGait != ISAGaitTags::Running)
+		if (DesiredGait != ISAGaitTags::Sprinting)
 		{
-			return ISAGaitTags::Walking;
+			return DesiredGait;
 		}
-		//return DesiredGait;
 	}
-
-	if (CanSprint())
+	if (bForceRunSprint)
 	{
-		return ISAGaitTags::Sprinting;
+		if (CanSprint())
+		{
+			return ISAGaitTags::Sprinting;
+		}
+		return ISAGaitTags::Running;
 	}
 
-	return ISAGaitTags::Running;
+	return ISAGaitTags::Walking;
 }
 
 FGameplayTag AISACharacterBase::CalculateActualGait(const FGameplayTag& MaxAllowedGait) const
@@ -335,12 +345,12 @@ FGameplayTag AISACharacterBase::CalculateActualGait(const FGameplayTag& MaxAllow
 	//Calculates the actual gait the player is in, this can differ from the desired or max allowed gait,
 	//When sprinting to walking youll only be in the walking gait when you decelerate enough to be considerd walking
 	
-	if (GetISACharacterMovement()->Speed < Settings->WalkSpeed || MaxAllowedGait != ISAGaitTags::Running)
+	if (GetISACharacterMovement()->Speed < Settings->WalkSpeed + 10.f)
 	{
 		return ISAGaitTags::Walking;
 	}
 
-	if (GetISACharacterMovement()->Speed < Settings->RunSpeed)
+	if (GetISACharacterMovement()->Speed < Settings->RunSpeed + 10.f || MaxAllowedGait != ISAGaitTags::Sprinting)
 	{
 		return ISAGaitTags::Running;
 	}
@@ -368,7 +378,7 @@ void AISACharacterBase::NotifyLocomotionActionChanged(const FGameplayTag& Previo
 UAnimMontage* AISACharacterBase::SelectRollMontage_Implementation()
 {
 	UE_LOG(LogTemp, Warning, TEXT("SELECTMONTAGE"));
-	return Settings->RollSettings.Montage;
+	return Settings->SlideSettings.Montage;
 }
 
 void AISACharacterBase::TryStartSliding()
