@@ -396,7 +396,8 @@ bool AISACharacterBase::IsAllowedToSlide(const UAnimMontage* Montage) const
 	return !LocomotionAction.IsValid() ||
 			   // ReSharper disable once CppRedundantParentheses
 			   (LocomotionAction == ISALocomotionActionTags::Rolling &&
-				!GetMesh()->GetAnimInstance()->Montage_IsPlaying(Montage));
+				!GetMesh()->GetAnimInstance()->Montage_IsPlaying(Montage)) ||
+					LocomotionMode == ISAGaitTags::Walking;
 }
 
 void AISACharacterBase::StartSliding()
@@ -409,13 +410,13 @@ void AISACharacterBase::StartSliding()
 		return;
 	}
 
-	StartSlidingImplementation(Montage);
 	UE_LOG(LogTemp, Warning, TEXT("Sliding has started"));
+	StartSlidingImplementation(Montage);
 }
 
 void AISACharacterBase::StartSlidingImplementation(UAnimMontage* Montage)
 {
-	if (IsAllowedToSlide(Montage) && GetMesh()->GetAnimInstance()->Montage_Play(Montage))
+	if (IsAllowedToSlide(Montage) && GetMesh()->GetAnimInstance()->Montage_Play(Montage, 1))
 	{
 		SetLocomotionAction(ISALocomotionActionTags::Sliding);
 	}

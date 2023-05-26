@@ -53,9 +53,9 @@ private:
 
 public:
 	bool bPressedISAJump;
-	UPROPERTY(VisibleAnywhere, Category = "Force ISA Player")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Force ISA Player")
 	bool bForceWalkRun;
-	UPROPERTY(VisibleAnywhere, Category = "Force ISA Player")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Force ISA Player")
 	bool bForceRunSprint;
 
 public:
