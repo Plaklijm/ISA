@@ -92,64 +92,6 @@ public:
 
 	virtual void Tick(float DeltaTime) override;
 
-private:
-	//void ApplyRotationYawSpeed(float DeltaTime);
-
-//public:
-//	UFUNCTION(BlueprintCallable, Category = "ALS|Als Character")
-//		void TryStartRolling(float PlayRate = 1.0f);
-//
-//	UFUNCTION(BlueprintNativeEvent, Category = "Als Character")
-//		UAnimMontage* SelectRollMontage();
-//
-//	bool IsRollingAllowedToStart(const UAnimMontage* Montage) const;
-//
-//private:
-//	void StartRolling(float PlayRate, float TargetYawAngle);
-//
-//
-//	UFUNCTION(NetMulticast, Reliable)
-//		void MulticastStartRolling(UAnimMontage* Montage, float PlayRate, float StartYawAngle, float TargetYawAngle);
-//
-//	void StartRollingImplementation(UAnimMontage* Montage, float PlayRate, float StartYawAngle, float TargetYawAngle);
-//
-//	void RefreshRolling(float DeltaTime);
-//
-//	void RefreshRollingPhysics(float DeltaTime);
-//
-//public:
-//	UFUNCTION(BlueprintNativeEvent, Category = "Als Character")
-//		bool IsMantlingAllowedToStart() const;
-//
-//	UFUNCTION(BlueprintCallable, Category = "ALS|Als Character")
-//		bool TryStartMantlingGrounded();
-//
-//private:
-//	bool TryStartMantlingInAir();
-//
-//	bool TryStartMantling(const FAlsMantlingTraceSettings& TraceSettings);
-//
-//	UFUNCTION(NetMulticast, Reliable)
-//		void MulticastStartMantling(const FAlsMantlingParameters& Parameters);
-//
-//	void StartMantlingImplementation(const FAlsMantlingParameters& Parameters);
-//
-//protected:
-//	UFUNCTION(BlueprintNativeEvent, Category = "Als Character")
-//		UAlsMantlingSettings* SelectMantlingSettings(EAlsMantlingType MantlingType);
-//
-//	UFUNCTION(BlueprintNativeEvent, Category = "Als Character")
-//		void OnMantlingStarted(const FAlsMantlingParameters& Parameters);
-//
-//private:
-//	void RefreshMantling();
-//
-//	void StopMantling();
-//
-//protected:
-//	UFUNCTION(BlueprintNativeEvent, Category = "Als Character")
-//		void OnMantlingEnded();
-
 public:
 	virtual void OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode = 0) override;
 

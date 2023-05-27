@@ -5,19 +5,18 @@
 #include "Animation/AnimMontage.h"
 #include "ISASettings.generated.h"
 
+//All the variables used for Sliding
 USTRUCT(BlueprintType)
 struct ISA_API FISASlideSettings
 {
 	GENERATED_BODY()
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ALS")
 	TObjectPtr<UAnimMontage> Montage{nullptr};
-
-	// If a character landed with a speed greater than the specified value, then start rolling.
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ALS",
-		Meta = (ClampMin = 0, EditCondition = "bStartRollingOnLand", ForceUnits = "cm/s"))
-	float RollingOnLandSpeedThreshold{700.0f};
 };
 
+
+
+//General Settings
 UCLASS(Blueprintable, BlueprintType)
 class ISA_API UISASettings : public UDataAsset
 {
@@ -50,8 +49,7 @@ public:
 	
 };
 
-
-
+// Helper Functions
 inline float UISASettings::GetSpeedForGait(const FGameplayTag& Gait, const FGameplayTag& Stance) const
 {
 	if (Stance == ISAStanceTags::Standing)

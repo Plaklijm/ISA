@@ -247,11 +247,6 @@ void UISACharacterMovementComponent::PhysSlide(float deltaTime, int32 Iterations
 				StartNewPhysics(remainingTime, Iterations);
 				return;
 			}
-			else if (IsSwimming()) //just entered water
-			{
-				StartSwimming(OldLocation, OldVelocity, timeTick, remainingTime, Iterations);
-				return;
-			}
 		}
 
 		// Update floor.
@@ -331,14 +326,6 @@ void UISACharacterMovementComponent::PhysSlide(float deltaTime, int32 Iterations
 				ResolvePenetration(RequestedAdjustment, Hit, UpdatedComponent->GetComponentQuat());
 				bForceNextFloorCheck = true;
 			}
-
-			/*	Extra function for if water gets implemented
-			// check if just entered water
-			if (IsSwimming())
-			{
-				StartSwimming(OldLocation, Velocity, timeTick, remainingTime, Iterations);
-				return;
-			} */
 
 			// See if we need to start falling.
 			if (!CurrentFloor.IsWalkableFloor() && !CurrentFloor.HitResult.bStartPenetrating)

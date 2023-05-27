@@ -81,8 +81,8 @@ void AISACharacterBase::SetForceGait(bool bWalk_Run, bool bRunSprint)
 
 void AISACharacterBase::Jump()
 {
-	if (Stance == ISAStanceTags::Standing && !LocomotionAction.IsValid() &&
-	LocomotionMode == ISALocomotionModeTags::Grounded)
+	if (Stance == ISAStanceTags::Standing && !LocomotionAction.IsValid()
+		&& LocomotionMode == ISALocomotionModeTags::Grounded)
 	{
 		Super::Jump();
 	}
@@ -416,8 +416,10 @@ void AISACharacterBase::StartSliding()
 
 void AISACharacterBase::StartSlidingImplementation(UAnimMontage* Montage)
 {
-	if (IsAllowedToSlide(Montage) && GetMesh()->GetAnimInstance()->Montage_Play(Montage, 1))
+	if (IsAllowedToSlide(Montage))// && GetMesh()->GetAnimInstance()->Montage_Play(Montage, 1))
 	{
+		UE_LOG(LogTemp, Warning, TEXT("started"));
+		PlayAnimMontage(Montage,1);
 		SetLocomotionAction(ISALocomotionActionTags::Sliding);
 	}
 }
@@ -547,4 +549,4 @@ FName AISACharacterBase::GetSimpleTagName(const FGameplayTag& Tag)
 	return TagNode.IsValid() ? TagNode->GetSimpleTagName() : NAME_None;
 }
 
-#pragma endregion 
+#pragma endregion

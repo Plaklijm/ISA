@@ -7,6 +7,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "ISACharacterMovementComponent.h"
 
+#pragma region Handle Input
 
 void AISAPlayerCharacter::NotifyControllerChanged()
 {
@@ -95,11 +96,6 @@ void AISAPlayerCharacter::Input_OnJump(const FInputActionValue& ActionValue)
 {
 	if (ActionValue.Get<bool>())
 	{
-		/*if (TryStartMantlingGrounded())
-		{
-			return;
-		}*/
-
 		if (GetStance() == ISAStanceTags::Crouching)
 		{
 			SetDesiredStance(ISAStanceTags::Standing);
@@ -119,7 +115,7 @@ void AISAPlayerCharacter::Input_OnCrouch()
 	if (GetDesiredStance() == ISAStanceTags::Standing)
 	{
 		SetDesiredStance(ISAStanceTags::Crouching);
-		TryStartSliding();
+		//TryStartSliding();
 	}
 	else if (GetDesiredStance() == ISAStanceTags::Crouching)
 	{
@@ -127,3 +123,12 @@ void AISAPlayerCharacter::Input_OnCrouch()
 	}
 }
 
+#pragma endregion 
+
+#pragma region Handle Mantling
+
+#pragma endregion
+
+#pragma region Handle Rolling
+
+#pragma endregion 
