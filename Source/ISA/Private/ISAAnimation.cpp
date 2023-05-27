@@ -14,11 +14,18 @@ void UISAAnimation::NativeInitializeAnimation()
 void UISAAnimation::NativeBeginPlay()
 {
 	Super::NativeBeginPlay();
+
+	ensure(IsValid(ISACharacter));
 }
 
 void UISAAnimation::NativeUpdateAnimation(float DeltaTime)
 {
 	Super::NativeUpdateAnimation(DeltaTime);
+
+	if (!IsValid(ISACharacter))
+	{
+		return;
+	}
 
 	LocomotionMode = ISACharacter->GetLocomotionMode();
 	Stance = ISACharacter->GetStance();
@@ -28,4 +35,16 @@ void UISAAnimation::NativeUpdateAnimation(float DeltaTime)
 	{
 		LocomotionAction = ISACharacter->GetLocomotionAction();
 	}
+	
+}
+
+void UISAAnimation::NativeThreadSafeUpdateAnimation(float DeltaTime)
+{
+	Super::NativeThreadSafeUpdateAnimation(DeltaTime);
+
+	if (!IsValid(ISACharacter))
+	{
+		return;
+	}
+	
 }

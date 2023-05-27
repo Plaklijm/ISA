@@ -16,10 +16,11 @@ class ISA_API UISAAnimation : public UAnimInstance
 	GENERATED_BODY()
 
 protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State", Transient)
 	TObjectPtr<AISACharacterBase> ISACharacter;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State", Transient)
-	FGameplayTag LocomotionMode{ISALocomotionModeTags::Grounded};
+FGameplayTag LocomotionMode{ISALocomotionModeTags::Grounded};
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State", Transient)
 	FGameplayTag Stance{ISAStanceTags::Standing};
@@ -36,4 +37,6 @@ public:
 	virtual void NativeBeginPlay() override;
 
 	virtual void NativeUpdateAnimation(float DeltaTime) override;
+
+	virtual void NativeThreadSafeUpdateAnimation(float DeltaTime) override;
 };
