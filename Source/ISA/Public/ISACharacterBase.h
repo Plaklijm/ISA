@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "InputActionValue.h"
+#include "DrawDebugHelpers.h"
 #include "Utility/ISAGameplayTags.h"
 #include "ISA.h"
 
@@ -97,6 +98,9 @@ public:
 
 private:
 	void RefreshLocomotion(const float DeltaTime);
+
+private:
+	void MantleTrace();
 	
 #pragma region GameplayTags
 //Locomotion Mode

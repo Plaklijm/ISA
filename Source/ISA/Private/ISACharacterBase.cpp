@@ -13,6 +13,7 @@
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Engine/Canvas.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 
 // AISACharacter
@@ -159,6 +160,8 @@ void AISACharacterBase::Tick(float DeltaTime)
 	RefreshLocomotion(DeltaTime);
 
 	RefreshGait();
+
+	MantleTrace();
 	
 	Super::Tick(DeltaTime);
 }
@@ -187,6 +190,49 @@ void AISACharacterBase::OnMovementModeChanged(EMovementMode PreviousMovementMode
 void AISACharacterBase::RefreshLocomotion(const float DeltaTime)
 {
 	GetISACharacterMovement()->Speed = UE_REAL_TO_FLOAT(GetISACharacterMovement()->Velocity.Size2D());
+}
+
+void AISACharacterBase::MantleTrace()
+{
+	FVector ForwardVector = GetActorForwardVector() * Settings->MantleSettings.ForwardTraceLength;
+	FVector StartLoc = FVector{GetActorLocation().X, GetActorLocation().Y, GetActorLocation().Z + Settings->MantleSettings.TraceForwardOffset}
+						+ ForwardVector;
+	FVector EndLoc = FVector{StartLoc.X, StartLoc.Y, StartLoc.Z - Settings->MantleSettings.MaxTraceHeight};
+
+	TArray<AActor*> IngoreActors;
+	IngoreActors.Add(this);
+
+	FHitResult HitResult;
+	
+	bool bIsHit = UKismetSystemLibrary::SphereTraceSingleByProfile(GetWorld(), StartLoc, EndLoc, Settings->MantleSettings.TraceRadius,
+		TEXT("BlockAll"), false, IngoreActors, EDrawDebugTrace::Type::ForOneFrame, HitResult, true);
+
+	if (bIsHit)
+	{
+		Settings->MantleSettings.MantleHeight = HitResult.Location;
+		if (Settings->MantleSettings.MantleHeight.Z > 300)
+		{
+			Settings->MantleSettings.MantleType = EISAMantleType::MantleHigh;
+			UE_LOG(LogTemp, Warning, TEXT("High"));
+		}
+		else if (Settings->MantleSettings.MantleHeight.Z > 200)
+		{
+			Settings->MantleSettings.MantleType = EISAMantleType::MantleLow;
+			UE_LOG(LogTemp, Warning, TEXT("Low"));
+		}
+		else
+		{
+			Settings->MantleSettings.MantleType = EISAMantleType::NoMantle;
+
+			UE_LOG(LogTemp, Warning, TEXT("None"));
+		}
+	}
+	else
+	{
+		Settings->MantleSettings.MantleType = EISAMantleType::NoMantle;
+
+		UE_LOG(LogTemp, Warning, TEXT("None"));
+	}
 }
 
 void AISACharacterBase::SetLocomotionMode(const FGameplayTag& NewLocomotionMode)

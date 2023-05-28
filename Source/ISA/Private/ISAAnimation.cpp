@@ -9,6 +9,15 @@ void UISAAnimation::NativeInitializeAnimation()
 	Super::NativeInitializeAnimation();
 
 	ISACharacter = Cast<AISACharacterBase>(GetOwningActor());
+
+#if WITH_EDITOR
+	if (!GetWorld()->IsGameWorld() && !IsValid(ISACharacter))
+	{
+		// Use default objects for editor preview.
+
+		ISACharacter = GetMutableDefault<AISACharacterBase>();
+	}
+#endif
 }
 
 void UISAAnimation::NativeBeginPlay()

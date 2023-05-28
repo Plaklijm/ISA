@@ -5,6 +5,38 @@
 #include "Animation/AnimMontage.h"
 #include "ISASettings.generated.h"
 
+//All the variables for Mantling
+UENUM(BlueprintType)
+enum class EISAMantleType
+{
+	NoMantle,
+	MantleLow,
+	MantleHigh
+};
+
+USTRUCT(BlueprintType)
+struct FISAMantleSettings
+{
+	GENERATED_BODY()
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mantle Settings");
+	EISAMantleType MantleType{EISAMantleType::NoMantle};
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mantle Settings");
+	FVector MantleHeight;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings", Meta = (ClampMin = 0, ForceUnits = "cm/s"))
+	float ForwardTraceLength{50.f};
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings", Meta = (ClampMin = 0, ForceUnits = "cm/s"))
+	float TraceForwardOffset{150.f};
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings", Meta = (ClampMin = 0, ForceUnits = "cm/s"))
+	float MaxTraceHeight{200.f};
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings", Meta = (ClampMin = 0, ForceUnits = "cm/s"))
+	float TraceRadius{10.f};
+};
+
 //All the variables used for Sliding
 USTRUCT(BlueprintType)
 struct ISA_API FISASlideSettings
@@ -13,8 +45,6 @@ struct ISA_API FISASlideSettings
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ALS")
 	TObjectPtr<UAnimMontage> Montage{nullptr};
 };
-
-
 
 //General Settings
 UCLASS(Blueprintable, BlueprintType)
@@ -44,6 +74,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings")
 	FISASlideSettings SlideSettings;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings")
+	FISAMantleSettings MantleSettings;
 public:
 	float GetSpeedForGait(const FGameplayTag& Gait, const FGameplayTag& Stance) const;
 	
