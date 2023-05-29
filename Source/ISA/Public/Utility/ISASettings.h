@@ -18,23 +18,43 @@ USTRUCT(BlueprintType)
 struct FISAMantleSettings
 {
 	GENERATED_BODY()
+
+public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mantle Settings");
 	EISAMantleType MantleType{EISAMantleType::NoMantle};
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mantle Settings");
-	FVector MantleHeight;
+	FVector WallLocation;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mantle Settings");
+	FVector WallNormal;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mantle Settings");
+	FVector WallHeight;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mantle Settings");
+	float CalculatedWallHeight;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mantle Settings");
+	bool bIsTallWall;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mantle Settings");
+	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings", Meta = (ClampMin = 0, ForceUnits = "cm/s"))
-	float ForwardTraceLength{50.f};
+	float ForwardTraceLength{75.f};
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings", Meta = (ClampMin = 0, ForceUnits = "cm/s"))
-	float TraceForwardOffset{150.f};
+	float TraceForwardOffset{-20.f};
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings", Meta = (ClampMin = 0, ForceUnits = "cm/s"))
 	float MaxTraceHeight{200.f};
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings", Meta = (ClampMin = 0, ForceUnits = "cm/s"))
 	float TraceRadius{10.f};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ALS")
+	TObjectPtr<UAnimMontage> Montage{nullptr};
 };
 
 //All the variables used for Sliding

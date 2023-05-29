@@ -101,8 +101,7 @@ void AISAPlayerCharacter::Input_OnJump(const FInputActionValue& ActionValue)
 			SetDesiredStance(ISAStanceTags::Standing);
 			return;
 		}
-
-		Jump();
+		MantleTrace();
 	}
 	else
 	{
@@ -121,6 +120,11 @@ void AISAPlayerCharacter::Input_OnCrouch()
 	{
 		SetDesiredStance(ISAStanceTags::Standing);
 	}
+}
+
+void AISAPlayerCharacter::TryMantle(EISAMantleType MantleType)
+{
+	UE_LOG(LogTemp, Warning, TEXT("TRYMANTLE"));
 }
 
 #pragma endregion 

@@ -12,5 +12,5 @@ class UCameraComponent;
 class UISASettings;
 
 // Character Classes
-class AISACharacter;
+class AISACharacterBase;
 class UISACharacterMovementComponent;

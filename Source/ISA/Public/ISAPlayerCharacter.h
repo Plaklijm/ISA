@@ -59,4 +59,7 @@ private:
 	void Input_OnJump(const FInputActionValue& ActionValue);
 
 	void Input_OnCrouch();
+
+private:
+	void TryMantle(EISAMantleType MantleType);
 };

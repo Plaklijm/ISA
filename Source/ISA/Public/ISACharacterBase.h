@@ -7,6 +7,7 @@
 #include "InputActionValue.h"
 #include "DrawDebugHelpers.h"
 #include "Utility/ISAGameplayTags.h"
+#include "Utility/ISASettings.h"
 #include "ISA.h"
 
 #include "ISACharacterBase.generated.h"
@@ -99,8 +100,14 @@ public:
 private:
 	void RefreshLocomotion(const float DeltaTime);
 
-private:
+protected:
 	void MantleTrace();
+	void MantleHeightTrace();
+	void CalculateWallHeight() const;
+	bool CalculateWallTHICCness();
+	
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	void SetupMantle();
 	
 #pragma region GameplayTags
 //Locomotion Mode

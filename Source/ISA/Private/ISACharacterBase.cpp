@@ -13,6 +13,7 @@
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Engine/Canvas.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
 
 
@@ -161,7 +162,7 @@ void AISACharacterBase::Tick(float DeltaTime)
 
 	RefreshGait();
 
-	MantleTrace();
+	CalculateWallHeight();
 	
 	Super::Tick(DeltaTime);
 }
@@ -194,45 +195,92 @@ void AISACharacterBase::RefreshLocomotion(const float DeltaTime)
 
 void AISACharacterBase::MantleTrace()
 {
-	FVector ForwardVector = GetActorForwardVector() * Settings->MantleSettings.ForwardTraceLength;
-	FVector StartLoc = FVector{GetActorLocation().X, GetActorLocation().Y, GetActorLocation().Z + Settings->MantleSettings.TraceForwardOffset}
-						+ ForwardVector;
-	FVector EndLoc = FVector{StartLoc.X, StartLoc.Y, StartLoc.Z - Settings->MantleSettings.MaxTraceHeight};
+	if (GetISACharacterMovement()->IsMovingOnGround())
+	{
+		FVector ForwardVector = GetActorForwardVector() * Settings->MantleSettings.ForwardTraceLength;
+		FVector StartLoc = FVector{GetActorLocation().X, GetActorLocation().Y, GetActorLocation().Z + Settings->MantleSettings.TraceForwardOffset};
+		FVector EndLoc = ForwardVector + StartLoc;
 
+		TArray<AActor*> IngoreActors;
+		IngoreActors.Add(this);
+
+		FHitResult HitResult;
+		
+		bool bIsHit = UKismetSystemLibrary::LineTraceSingleForObjects(GetWorld(), StartLoc, EndLoc, Settings->MantleSettings.ObjectTypes,
+			false, IngoreActors, EDrawDebugTrace::Type::ForOneFrame, HitResult, true);
+
+		if (bIsHit)
+		{
+			Settings->MantleSettings.WallLocation = HitResult.Location;
+			Settings->MantleSettings.WallNormal = HitResult.Normal;
+
+			MantleHeightTrace();
+
+			if (Settings->MantleSettings.CalculatedWallHeight <= 71)
+			{
+				Settings->MantleSettings.bIsTallWall = false;
+				if (CalculateWallTHICCness() == false)
+				{
+					SetupMantle();
+				}
+			}
+			else
+			{
+				Settings->MantleSettings.bIsTallWall = true;
+			}
+
+			UE_LOG(LogTemp, Warning, TEXT("%f"), Settings->MantleSettings.CalculatedWallHeight);
+		}
+	}
+}
+
+void AISACharacterBase::MantleHeightTrace()
+{
+	auto Rotation = UKismetMathLibrary::MakeRotFromX(Settings->MantleSettings.WallNormal);
+	FVector ForwardVector =  UKismetMathLibrary::GetForwardVector(Rotation) * -10;
+	FVector StartLoc = Settings->MantleSettings.WallLocation + ForwardVector + FVector{0,0,900};
+	FVector EndLoc = StartLoc - FVector{0,0,900};
+	
 	TArray<AActor*> IngoreActors;
 	IngoreActors.Add(this);
 
 	FHitResult HitResult;
 	
-	bool bIsHit = UKismetSystemLibrary::SphereTraceSingleByProfile(GetWorld(), StartLoc, EndLoc, Settings->MantleSettings.TraceRadius,
-		TEXT("BlockAll"), false, IngoreActors, EDrawDebugTrace::Type::ForOneFrame, HitResult, true);
+	UKismetSystemLibrary::LineTraceSingleForObjects(GetWorld(), StartLoc, EndLoc, Settings->MantleSettings.ObjectTypes,
+   false, IngoreActors, EDrawDebugTrace::Type::ForOneFrame, HitResult, true);
 
-	if (bIsHit)
+	Settings->MantleSettings.WallHeight.Z = HitResult.Location.Z - (GetActorLocation().Z - 90);
+}
+
+void AISACharacterBase::CalculateWallHeight() const
+{
+	Settings->MantleSettings.CalculatedWallHeight = (Settings->MantleSettings.WallHeight - Settings->MantleSettings.WallLocation).Z;
+}
+
+bool AISACharacterBase::CalculateWallTHICCness()
+{
+	auto Rotation = UKismetMathLibrary::MakeRotFromX(Settings->MantleSettings.WallNormal);
+	FVector ForwardVector =  UKismetMathLibrary::GetForwardVector(Rotation) * -50;
+	FVector StartLoc = Settings->MantleSettings.WallLocation + ForwardVector + FVector{0,0,900};
+	FVector EndLoc = StartLoc - FVector{0,0,900};
+	
+	TArray<AActor*> IngoreActors;
+	IngoreActors.Add(this);
+
+	FHitResult HitResult;
+	
+	UKismetSystemLibrary::LineTraceSingleForObjects(GetWorld(), StartLoc, EndLoc, Settings->MantleSettings.ObjectTypes,
+   false, IngoreActors, EDrawDebugTrace::Type::ForOneFrame, HitResult, true);
+	if (HitResult.bBlockingHit)
 	{
-		Settings->MantleSettings.MantleHeight = HitResult.Location;
-		if (Settings->MantleSettings.MantleHeight.Z > 300)
-		{
-			Settings->MantleSettings.MantleType = EISAMantleType::MantleHigh;
-			UE_LOG(LogTemp, Warning, TEXT("High"));
-		}
-		else if (Settings->MantleSettings.MantleHeight.Z > 200)
-		{
-			Settings->MantleSettings.MantleType = EISAMantleType::MantleLow;
-			UE_LOG(LogTemp, Warning, TEXT("Low"));
-		}
-		else
-		{
-			Settings->MantleSettings.MantleType = EISAMantleType::NoMantle;
-
-			UE_LOG(LogTemp, Warning, TEXT("None"));
-		}
+		return true;
 	}
-	else
-	{
-		Settings->MantleSettings.MantleType = EISAMantleType::NoMantle;
+	
+	return false;
+}
 
-		UE_LOG(LogTemp, Warning, TEXT("None"));
-	}
+void AISACharacterBase::SetupMantle_Implementation()
+{
 }
 
 void AISACharacterBase::SetLocomotionMode(const FGameplayTag& NewLocomotionMode)
