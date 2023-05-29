@@ -207,7 +207,7 @@ void AISACharacterBase::MantleTrace()
 		FHitResult HitResult;
 		
 		bool bIsHit = UKismetSystemLibrary::LineTraceSingleForObjects(GetWorld(), StartLoc, EndLoc, Settings->MantleSettings.ObjectTypes,
-			false, IngoreActors, EDrawDebugTrace::Type::ForOneFrame, HitResult, true);
+			false, IngoreActors, EDrawDebugTrace::Type::Persistent, HitResult, true);
 
 		if (bIsHit)
 		{
@@ -247,7 +247,7 @@ void AISACharacterBase::MantleHeightTrace()
 	FHitResult HitResult;
 	
 	UKismetSystemLibrary::LineTraceSingleForObjects(GetWorld(), StartLoc, EndLoc, Settings->MantleSettings.ObjectTypes,
-   false, IngoreActors, EDrawDebugTrace::Type::ForOneFrame, HitResult, true);
+   false, IngoreActors, EDrawDebugTrace::Type::Persistent, HitResult, true);
 
 	Settings->MantleSettings.WallHeight.Z = HitResult.Location.Z - (GetActorLocation().Z - 90);
 }
@@ -270,7 +270,7 @@ bool AISACharacterBase::CalculateWallTHICCness()
 	FHitResult HitResult;
 	
 	UKismetSystemLibrary::LineTraceSingleForObjects(GetWorld(), StartLoc, EndLoc, Settings->MantleSettings.ObjectTypes,
-   false, IngoreActors, EDrawDebugTrace::Type::ForOneFrame, HitResult, true);
+   false, IngoreActors, EDrawDebugTrace::Type::Persistent, HitResult, true);
 	if (HitResult.bBlockingHit)
 	{
 		return true;
