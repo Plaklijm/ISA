@@ -5,57 +5,7 @@
 #include "Animation/AnimMontage.h"
 #include "ISASettings.generated.h"
 
-//All the variables for Mantling
-UENUM(BlueprintType)
-enum class EISAMantleType
-{
-	NoMantle,
-	MantleLow,
-	MantleHigh
-};
-
-USTRUCT(BlueprintType)
-struct FISAMantleSettings
-{
-	GENERATED_BODY()
-
-public:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mantle Settings");
-	EISAMantleType MantleType{EISAMantleType::NoMantle};
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mantle Settings");
-	FVector WallLocation;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mantle Settings");
-	FVector WallNormal;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mantle Settings");
-	FVector WallHeight;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mantle Settings");
-	float CalculatedWallHeight;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mantle Settings");
-	bool bIsTallWall;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mantle Settings");
-	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings", Meta = (ClampMin = 0, ForceUnits = "cm/s"))
-	float ForwardTraceLength{75.f};
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings", Meta = (ClampMin = 0, ForceUnits = "cm/s"))
-	float TraceForwardOffset{-20.f};
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings", Meta = (ClampMin = 0, ForceUnits = "cm/s"))
-	float MaxTraceHeight{200.f};
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings", Meta = (ClampMin = 0, ForceUnits = "cm/s"))
-	float TraceRadius{10.f};
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ALS")
-	TObjectPtr<UAnimMontage> Montage{nullptr};
-};
+class UMantleSettings;
 
 //All the variables used for Sliding
 USTRUCT(BlueprintType)
@@ -93,9 +43,6 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings")
 	FISASlideSettings SlideSettings;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings")
-	FISAMantleSettings MantleSettings;
 public:
 	float GetSpeedForGait(const FGameplayTag& Gait, const FGameplayTag& Stance) const;
 	

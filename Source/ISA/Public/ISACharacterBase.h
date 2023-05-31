@@ -22,7 +22,10 @@ protected:
 	class UISACharacterMovementComponent* ISACharacterMovementComponent;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|ISA Character")
-	TObjectPtr<UISASettings> Settings;
+	TObjectPtr<UISASettings> GeneralSettings;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|ISA Character")
+	TObjectPtr<UMantleSettings> MantleSettings;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Tags|ISA Character", Transient)
 	FGameplayTag DesiredStance { ISAStanceTags::Standing };
@@ -102,9 +105,6 @@ private:
 
 protected:
 	void MantleTrace();
-	void MantleHeightTrace();
-	void CalculateWallHeight() const;
-	bool CalculateWallTHICCness();
 	
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	void SetupMantle();
@@ -161,6 +161,7 @@ protected:
 
 //Locomotion Action
 public:
+	UFUNCTION(BlueprintCallable, Category = "Als Character")
 	void SetLocomotionAction(const FGameplayTag& NewLocomotionAction);
 
 	const FGameplayTag& GetLocomotionAction() const;

@@ -5,6 +5,7 @@
 #include "CanvasItem.h"
 #include "ISACharacterMovementComponent.h"
 #include "Utility/ISASettings.h"
+#include "Utility/MantleSettings.h"
 #include "TimerManager.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -62,7 +63,8 @@ AISACharacterBase::AISACharacterBase(const FObjectInitializer& ObjectInitializer
 
 void AISACharacterBase::BeginPlay()
 {
-	ensure(IsValid(Settings));
+	ensure(IsValid(GeneralSettings));
+	ensure(IsValid(MantleSettings));
 	// Call the base class  
 	Super::BeginPlay();
 
@@ -162,7 +164,9 @@ void AISACharacterBase::Tick(float DeltaTime)
 
 	RefreshGait();
 
-	CalculateWallHeight();
+	//CalculateWallHeight();
+
+	//VaultJumpHelperFunction();
 	
 	Super::Tick(DeltaTime);
 }
@@ -197,86 +201,59 @@ void AISACharacterBase::MantleTrace()
 {
 	if (GetISACharacterMovement()->IsMovingOnGround())
 	{
-		FVector ForwardVector = GetActorForwardVector() * Settings->MantleSettings.ForwardTraceLength;
-		FVector StartLoc = FVector{GetActorLocation().X, GetActorLocation().Y, GetActorLocation().Z + Settings->MantleSettings.TraceForwardOffset};
-		FVector EndLoc = ForwardVector + StartLoc;
-
-		TArray<AActor*> IngoreActors;
-		IngoreActors.Add(this);
-
-		FHitResult HitResult;
-		
-		bool bIsHit = UKismetSystemLibrary::LineTraceSingleForObjects(GetWorld(), StartLoc, EndLoc, Settings->MantleSettings.ObjectTypes,
-			false, IngoreActors, EDrawDebugTrace::Type::Persistent, HitResult, true);
-
-		if (bIsHit)
+		for (int i = 0; i < 3; i++)
 		{
-			Settings->MantleSettings.WallLocation = HitResult.Location;
-			Settings->MantleSettings.WallNormal = HitResult.Normal;
+			FVector StartLoc = FVector{GetActorLocation().X, GetActorLocation().Y, GetActorLocation().Z + i * MantleSettings->TraceForwardStart};
+			FVector ForwardVector = GetActorForwardVector() * MantleSettings->ForwardTraceLength;
+			FVector EndLoc = StartLoc + ForwardVector;
 
-			MantleHeightTrace();
-
-			if (Settings->MantleSettings.CalculatedWallHeight <= 71)
+			TArray<AActor*> IngoreActors;
+			IngoreActors.Add(this);
+			
+			FHitResult HitResult;
+			
+			if (UKismetSystemLibrary::SphereTraceSingleForObjects(GetWorld(), StartLoc, EndLoc, 5, MantleSettings->ObjectTypes,
+				false, IngoreActors, EDrawDebugTrace::Type::Persistent, HitResult, true))
 			{
-				Settings->MantleSettings.bIsTallWall = false;
-				if (CalculateWallTHICCness() == false)
+				for (int f = 0; f < 5; f++)
 				{
-					SetupMantle();
+					FVector _ForwardVector = GetActorForwardVector() * (f * 50);
+					FVector _StartLoc = FVector{HitResult.Location.X, HitResult.Location.Y, HitResult.Location.Z + 100} + _ForwardVector;
+					FVector _EndLoc = _StartLoc - FVector{0,0,100};
+			
+					FHitResult _HitResult;
+			
+					if (UKismetSystemLibrary::SphereTraceSingleForObjects(GetWorld(), _StartLoc, _EndLoc, 5, MantleSettings->ObjectTypes,
+						false, IngoreActors, EDrawDebugTrace::Type::Persistent, _HitResult, true))
+					{
+						if (f == 0)
+						{
+							MantleSettings->VaultStartPos = _HitResult.Location;
+						}
+						MantleSettings->VaultMidPos = _HitResult.Location;
+					}
+					else if (UKismetSystemLibrary::SphereTraceSingleForObjects(GetWorld(), _HitResult.TraceStart + GetActorForwardVector() * 80,
+						(_HitResult.TraceStart + GetActorForwardVector() * 80) - FVector{0,0,1000}, 5, MantleSettings->ObjectTypes,
+						false, IngoreActors, EDrawDebugTrace::Type::Persistent, _HitResult, true))
+					{
+						MantleSettings->VaultEndPos = _HitResult.Location;
+					}
 				}
+				MantleSettings->bCanMantle = true;
+				
+				SetupMantle();
+				
+				break;
 			}
-			else
-			{
-				Settings->MantleSettings.bIsTallWall = true;
-			}
-
-			UE_LOG(LogTemp, Warning, TEXT("%f"), Settings->MantleSettings.CalculatedWallHeight);
+			MantleSettings->bCanMantle = false;
+			
+			break;
 		}
 	}
-}
-
-void AISACharacterBase::MantleHeightTrace()
-{
-	auto Rotation = UKismetMathLibrary::MakeRotFromX(Settings->MantleSettings.WallNormal);
-	FVector ForwardVector =  UKismetMathLibrary::GetForwardVector(Rotation) * -10;
-	FVector StartLoc = Settings->MantleSettings.WallLocation + ForwardVector + FVector{0,0,900};
-	FVector EndLoc = StartLoc - FVector{0,0,900};
-	
-	TArray<AActor*> IngoreActors;
-	IngoreActors.Add(this);
-
-	FHitResult HitResult;
-	
-	UKismetSystemLibrary::LineTraceSingleForObjects(GetWorld(), StartLoc, EndLoc, Settings->MantleSettings.ObjectTypes,
-   false, IngoreActors, EDrawDebugTrace::Type::Persistent, HitResult, true);
-
-	Settings->MantleSettings.WallHeight.Z = HitResult.Location.Z - (GetActorLocation().Z - 90);
-}
-
-void AISACharacterBase::CalculateWallHeight() const
-{
-	Settings->MantleSettings.CalculatedWallHeight = (Settings->MantleSettings.WallHeight - Settings->MantleSettings.WallLocation).Z;
-}
-
-bool AISACharacterBase::CalculateWallTHICCness()
-{
-	auto Rotation = UKismetMathLibrary::MakeRotFromX(Settings->MantleSettings.WallNormal);
-	FVector ForwardVector =  UKismetMathLibrary::GetForwardVector(Rotation) * -50;
-	FVector StartLoc = Settings->MantleSettings.WallLocation + ForwardVector + FVector{0,0,900};
-	FVector EndLoc = StartLoc - FVector{0,0,900};
-	
-	TArray<AActor*> IngoreActors;
-	IngoreActors.Add(this);
-
-	FHitResult HitResult;
-	
-	UKismetSystemLibrary::LineTraceSingleForObjects(GetWorld(), StartLoc, EndLoc, Settings->MantleSettings.ObjectTypes,
-   false, IngoreActors, EDrawDebugTrace::Type::Persistent, HitResult, true);
-	if (HitResult.bBlockingHit)
+	else
 	{
-		return true;
+		MantleSettings->bCanMantle = false;
 	}
-	
-	return false;
 }
 
 void AISACharacterBase::SetupMantle_Implementation()
@@ -314,8 +291,8 @@ void AISACharacterBase::NotifyLocomotionModeChanged(const FGameplayTag& Previous
 		}*/
 		
 			ISACharacterMovementComponent->BrakingFrictionFactor = ISACharacterMovementComponent->bHasInput 
-																									? Settings->HasInputBrakingFrictionFactor 
-																									: Settings->NoInputBrakingFrictionFactor;
+																									? GeneralSettings->HasInputBrakingFrictionFactor 
+																									: GeneralSettings->NoInputBrakingFrictionFactor;
 
 			GetWorldTimerManager().SetTimer(BrakingFrictionFactorResetTimer,
 				FTimerDelegate::CreateWeakLambda(this, [this]
@@ -439,12 +416,12 @@ FGameplayTag AISACharacterBase::CalculateActualGait(const FGameplayTag& MaxAllow
 	//Calculates the actual gait the player is in, this can differ from the desired or max allowed gait,
 	//When sprinting to walking youll only be in the walking gait when you decelerate enough to be considerd walking
 	
-	if (GetISACharacterMovement()->Speed < Settings->WalkSpeed + 10.f)
+	if (GetISACharacterMovement()->Speed < GeneralSettings->WalkSpeed + 10.f)
 	{
 		return ISAGaitTags::Walking;
 	}
 
-	if (GetISACharacterMovement()->Speed < Settings->RunSpeed + 10.f || MaxAllowedGait != ISAGaitTags::Sprinting)
+	if (GetISACharacterMovement()->Speed < GeneralSettings->RunSpeed + 10.f || MaxAllowedGait != ISAGaitTags::Sprinting)
 	{
 		return ISAGaitTags::Running;
 	}
@@ -472,7 +449,7 @@ void AISACharacterBase::NotifyLocomotionActionChanged(const FGameplayTag& Previo
 UAnimMontage* AISACharacterBase::SelectRollMontage_Implementation()
 {
 	UE_LOG(LogTemp, Warning, TEXT("SELECTMONTAGE"));
-	return Settings->SlideSettings.Montage;
+	return GeneralSettings->SlideSettings.Montage;
 }
 
 void AISACharacterBase::TryStartSliding()

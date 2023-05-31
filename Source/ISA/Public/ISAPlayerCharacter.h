@@ -6,6 +6,8 @@
 #include "ISACharacterBase.h"
 #include "ISAPlayerCharacter.generated.h"
 
+enum class EISAMantleType;
+
 UCLASS()
 class ISA_API AISAPlayerCharacter : public AISACharacterBase
 {
@@ -39,7 +41,7 @@ protected:
 	//Debug
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* DebugCommand;
-
+	
 public:
 
 	virtual void NotifyControllerChanged() override;
@@ -60,6 +62,5 @@ private:
 
 	void Input_OnCrouch();
 
-private:
-	void TryMantle(EISAMantleType MantleType);
+	bool CanMantle();
 };

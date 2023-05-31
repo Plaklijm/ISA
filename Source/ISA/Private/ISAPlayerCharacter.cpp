@@ -6,6 +6,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "ISACharacterMovementComponent.h"
+#include "Utility/MantleSettings.h"
 
 #pragma region Handle Input
 
@@ -99,9 +100,15 @@ void AISAPlayerCharacter::Input_OnJump(const FInputActionValue& ActionValue)
 		if (GetStance() == ISAStanceTags::Crouching)
 		{
 			SetDesiredStance(ISAStanceTags::Standing);
+			return;	
+		}
+		if (CanMantle())
+		{
+			MantleTrace();
 			return;
 		}
-		MantleTrace();
+		
+		Jump();
 	}
 	else
 	{
@@ -122,16 +129,13 @@ void AISAPlayerCharacter::Input_OnCrouch()
 	}
 }
 
-void AISAPlayerCharacter::TryMantle(EISAMantleType MantleType)
+bool AISAPlayerCharacter::CanMantle()
 {
-	UE_LOG(LogTemp, Warning, TEXT("TRYMANTLE"));
+	MantleTrace();
+	return LocomotionMode == ISALocomotionModeTags::Grounded && MantleSettings->bCanMantle;
 }
 
 #pragma endregion 
-
-#pragma region Handle Mantling
-
-#pragma endregion
 
 #pragma region Handle Rolling
 
