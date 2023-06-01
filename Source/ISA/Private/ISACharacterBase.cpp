@@ -213,18 +213,18 @@ void AISACharacterBase::MantleTrace()
 			FHitResult HitResult;
 			
 			if (UKismetSystemLibrary::SphereTraceSingleForObjects(GetWorld(), StartLoc, EndLoc, 5, MantleSettings->ObjectTypes,
-				false, IngoreActors, EDrawDebugTrace::Type::Persistent, HitResult, true))
+				false, IngoreActors, EDrawDebugTrace::Type::ForDuration, HitResult, true))
 			{
 				for (int f = 0; f < 5; f++)
 				{
-					FVector _ForwardVector = GetActorForwardVector() * (f * 50);
+					FVector _ForwardVector = GetActorForwardVector() * (f * 75);
 					FVector _StartLoc = FVector{HitResult.Location.X, HitResult.Location.Y, HitResult.Location.Z + 100} + _ForwardVector;
 					FVector _EndLoc = _StartLoc - FVector{0,0,100};
 			
 					FHitResult _HitResult;
 			
 					if (UKismetSystemLibrary::SphereTraceSingleForObjects(GetWorld(), _StartLoc, _EndLoc, 5, MantleSettings->ObjectTypes,
-						false, IngoreActors, EDrawDebugTrace::Type::Persistent, _HitResult, true))
+						false, IngoreActors, EDrawDebugTrace::Type::ForDuration, _HitResult, true))
 					{
 						if (f == 0)
 						{
@@ -232,9 +232,9 @@ void AISACharacterBase::MantleTrace()
 						}
 						MantleSettings->VaultMidPos = _HitResult.Location;
 					}
-					else if (UKismetSystemLibrary::SphereTraceSingleForObjects(GetWorld(), _HitResult.TraceStart + GetActorForwardVector() * 80,
-						(_HitResult.TraceStart + GetActorForwardVector() * 80) - FVector{0,0,1000}, 5, MantleSettings->ObjectTypes,
-						false, IngoreActors, EDrawDebugTrace::Type::Persistent, _HitResult, true))
+					else if (UKismetSystemLibrary::LineTraceSingleForObjects(GetWorld(), _HitResult.TraceStart + GetActorForwardVector() * 80,
+						(_HitResult.TraceStart + GetActorForwardVector() * 80) - FVector{0,0,1000}, MantleSettings->ObjectTypes,
+						false, IngoreActors, EDrawDebugTrace::Type::ForDuration, _HitResult, true))
 					{
 						MantleSettings->VaultEndPos = _HitResult.Location;
 					}
