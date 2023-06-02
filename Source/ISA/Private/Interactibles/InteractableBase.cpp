@@ -3,44 +3,36 @@
 
 #include "Interactibles/InteractableBase.h"
 
+#include "Components/BoxComponent.h"
+
 
 // Sets default values
 AInteractableBase::AInteractableBase()
 {
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
+
+	BoxComp = CreateDefaultSubobject<UBoxComponent>(FName("BoxComp"));
+	BoxComp->InitBoxExtent(FVector{100,100,100});
+	BoxComp->bHiddenInGame = false;
+	SetRootComponent(BoxComp);
 }
 
 // Called when the game starts or when spawned
 void AInteractableBase::BeginPlay()
 {
 	Super::BeginPlay();
+	BoxComp->OnComponentBeginOverlap.AddDynamic(this, &AInteractableBase::OverlapStarted);
 	
 }
 
-// Called every frame
-void AInteractableBase::Tick(float DeltaTime)
+void AInteractableBase::InteractEventStarted_Implementation()
 {
-	Super::Tick(DeltaTime);
 }
 
-void AInteractableBase::OnInteract_Implementation(AActor* Caller)
+void AInteractableBase::OverlapStarted_Implementation(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+                                                      UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool FromSweep, const FHitResult& SweepResult)
 {
-	Destroy();
-	IInteractableInterface::OnInteract_Implementation(Caller);
+	InteractFunction.Broadcast();
+	InteractEventStarted();
 }
-
-void AInteractableBase::StartFocus_Implementation()
-{
-	GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Orange, TEXT("StartFocus"));
-	IInteractableInterface::StartFocus_Implementation();
-}
-
-void AInteractableBase::EndFocus_Implementation()
-{
-	GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Green, TEXT("EndFocus"));
-	IInteractableInterface::EndFocus_Implementation();
-}
-
-
-

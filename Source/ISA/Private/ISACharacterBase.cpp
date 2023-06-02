@@ -14,7 +14,8 @@
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Engine/Canvas.h"
-#include "Kismet/KismetMathLibrary.h"
+#include "Interactibles/InteractableBase.h"
+#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
 
 
@@ -61,6 +62,7 @@ AISACharacterBase::AISACharacterBase(const FObjectInitializer& ObjectInitializer
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
 }
 
+
 void AISACharacterBase::BeginPlay()
 {
 	ensure(IsValid(GeneralSettings));
@@ -68,6 +70,16 @@ void AISACharacterBase::BeginPlay()
 	// Call the base class  
 	Super::BeginPlay();
 
+	//Checks for the interactables and listen to the Broadcast	
+	TArray<AActor*> FoundInteractables;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AInteractableBase::StaticClass(), FoundInteractables);
+
+	for (int i = 0; i < FoundInteractables.Num(); i++)
+	{
+		AInteractableBase* TempInteractable = Cast<AInteractableBase>(FoundInteractables[i]);
+		TempInteractable->InteractFunction.AddDynamic(this, &AISACharacterBase::Interact);
+	}
+	
 	ApplyDesiredStance();
 
 	ISACharacterMovementComponent->SetStance(Stance);
@@ -494,6 +506,12 @@ void AISACharacterBase::StartSlidingImplementation(UAnimMontage* Montage)
 		SetLocomotionAction(ISALocomotionActionTags::Sliding);
 	}
 }
+
+void AISACharacterBase::Interact_Implementation()
+{
+	GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Green, TEXT("Interacted"));
+}
+
 
 #pragma region Debug
 

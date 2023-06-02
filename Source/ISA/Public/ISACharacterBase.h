@@ -178,6 +178,9 @@ protected:
 	void StartSliding();
 	void StartSlidingImplementation(UAnimMontage* Montage);
 
+	UFUNCTION(BlueprintNativeEvent, Category = "Overlap")
+	void Interact();
+
 #pragma endregion
 	
 //Debug functions
