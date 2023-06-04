@@ -46,14 +46,3 @@ void UISAAnimation::NativeUpdateAnimation(float DeltaTime)
 	}
 	
 }
-
-void UISAAnimation::NativeThreadSafeUpdateAnimation(float DeltaTime)
-{
-	Super::NativeThreadSafeUpdateAnimation(DeltaTime);
-
-	if (!IsValid(ISACharacter))
-	{
-		return;
-	}
-	
-}
