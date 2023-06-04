@@ -238,24 +238,32 @@ void AISACharacterBase::MantleTrace()
 					if (UKismetSystemLibrary::SphereTraceSingleForObjects(GetWorld(), _StartLoc, _EndLoc, 5, MantleSettings->ObjectTypes,
 						false, IngoreActors, EDrawDebugTrace::Type::ForDuration, _HitResult, true))
 					{
-						if (f == 0)
+						if (!_HitResult.bStartPenetrating)
 						{
-							MantleSettings->VaultStartPos = _HitResult.Location;
+							if (f == 0)
+							{
+								MantleSettings->VaultStartPos = _HitResult.Location;
+							}
+							MantleSettings->VaultMidPos = _HitResult.Location;
 						}
-						MantleSettings->VaultMidPos = _HitResult.Location;
+						else
+						{
+							MantleSettings->bCanWarp = false;
+							MantleSettings->VaultEndPos = {0,0,2000};
+							break;
+						}
 					}
 					else if (UKismetSystemLibrary::LineTraceSingleForObjects(GetWorld(), _HitResult.TraceStart + GetActorForwardVector() * 80,
 						(_HitResult.TraceStart + GetActorForwardVector() * 80) - FVector{0,0,1000}, MantleSettings->ObjectTypes,
 						false, IngoreActors, EDrawDebugTrace::Type::ForDuration, _HitResult, true))
 					{
 						MantleSettings->VaultEndPos = _HitResult.Location;
+						break;
 					}
 				}
 				MantleSettings->bCanMantle = true;
 				
 				SetupMantle();
-				
-				break;
 			}
 			MantleSettings->bCanMantle = false;
 			
