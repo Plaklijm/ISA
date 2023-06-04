@@ -38,6 +38,4 @@ public:
 
 	virtual void NativeUpdateAnimation(float DeltaTime) override;
 	
-
-	virtual void NativeThreadSafeUpdateAnimation(float DeltaTime) override;
 };
