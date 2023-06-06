@@ -105,7 +105,6 @@ void AISAPlayerCharacter::Input_OnJump(const FInputActionValue& ActionValue)
 		if (CanMantle())
 		{
 			MantleTrace();
-			return;
 		}
 		
 		Jump();

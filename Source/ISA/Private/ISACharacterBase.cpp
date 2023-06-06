@@ -229,7 +229,7 @@ void AISACharacterBase::MantleTrace()
 			{
 				MantleSettings->VaultStartPos = FVector{GetActorLocation().X, GetActorLocation().Y, GetActorLocation().Z - ISACharacterMovementComponent->CapHH()};
 				
-				for (int f = 1; f < 6; f++)
+				for (int f = 0; f < 6; f++)
 				{
 					FVector _ForwardVector = GetActorForwardVector() * (f * 50);
 					FVector _StartLoc = FVector{HitResult.Location.X, HitResult.Location.Y, HitResult.Location.Z + 100} + _ForwardVector;
@@ -242,7 +242,8 @@ void AISACharacterBase::MantleTrace()
 					{
 						if (!_HitResult.bStartPenetrating)
 						{
-							MantleSettings->VaultMidPos = _HitResult.Location;
+							MantleSettings->VaultMidPos = FVector{_HitResult.Location.X, _HitResult.Location.Y,
+								_HitResult.Location.Z - ISACharacterMovementComponent->CapHH() / 2};
 						}
 						else
 						{
