@@ -81,7 +81,7 @@ void AISAPlayerCharacter::Input_OnForceMode(const FInputActionValue& ActionValue
 
 void AISAPlayerCharacter::Input_OnSprint(const FInputActionValue& ActionValue)
 {
-	UE_LOG(LogTemp, Warning, TEXT("%s"), ActionValue.Get<bool>() ? TEXT("True") : TEXT("False"));
+	//UE_LOG(LogTemp, Warning, TEXT("%s"), ActionValue.Get<bool>() ? TEXT("True") : TEXT("False"));
 	if (bForceWalkRun)
 	{
 		SetDesiredGait(ActionValue.Get<bool>() ? ISAGaitTags::Running : ISAGaitTags::Walking);
@@ -131,8 +131,7 @@ void AISAPlayerCharacter::Input_OnCrouch()
 
 bool AISAPlayerCharacter::CanMantle()
 {
-	MantleTrace();
-	return LocomotionMode == ISALocomotionModeTags::Grounded && MantleSettings->bCanMantle;
+	return LocomotionMode == ISALocomotionModeTags::Grounded;
 }
 
 #pragma endregion 

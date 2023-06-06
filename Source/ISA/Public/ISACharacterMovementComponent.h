@@ -33,12 +33,12 @@ private:
 		// Parameters
 
 	#pragma region Slide
-		UPROPERTY(EditDefaultsOnly) float MinSlideSpeed = 400.f;
-		UPROPERTY(EditDefaultsOnly) float MaxSlideSpeed = 400.f;
-		UPROPERTY(EditDefaultsOnly) float SlideEnterImpulse = 400.f;
-		UPROPERTY(EditDefaultsOnly) float SlideGravityForce = 4000.f;
-		UPROPERTY(EditDefaultsOnly) float SlideFrictionFactor = .06f;
-		UPROPERTY(EditDefaultsOnly) float BrakingDecelerationSliding = 1000.f;
+		UPROPERTY(EditDefaultsOnly) float MinSlideSpeed = 200.f;
+		UPROPERTY(EditDefaultsOnly) float MaxSlideSpeed = 500.f;
+		UPROPERTY(EditDefaultsOnly) float SlideEnterImpulse = 200.f;
+		UPROPERTY(EditDefaultsOnly) float SlideGravityForce = 5000.f;
+		UPROPERTY(EditDefaultsOnly) float SlideFrictionFactor = .2f;
+		UPROPERTY(EditDefaultsOnly) float BrakingDecelerationSliding = 2500.f;
 	#pragma endregion	
 		// Transient
 		UPROPERTY(Transient) AISACharacterBase* ISACharacterBase;
@@ -96,9 +96,11 @@ private:
 	void PhysSlide(float deltaTime, int32 Iterations);
 
 	// Helpers
-private:
+public:
 	float CapR() const;
 	float CapHH() const;
+	
+private:
 	void SetupInputDirection(FVector NewInputDirection);
 
 public:

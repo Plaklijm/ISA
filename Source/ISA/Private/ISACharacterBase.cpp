@@ -227,9 +227,11 @@ void AISACharacterBase::MantleTrace()
 			if (UKismetSystemLibrary::SphereTraceSingleForObjects(GetWorld(), StartLoc, EndLoc, 5, MantleSettings->ObjectTypes,
 				false, IngoreActors, EDrawDebugTrace::Type::ForDuration, HitResult, true))
 			{
-				for (int f = 0; f < 5; f++)
+				MantleSettings->VaultStartPos = FVector{GetActorLocation().X, GetActorLocation().Y, GetActorLocation().Z - ISACharacterMovementComponent->CapHH()};
+				
+				for (int f = 1; f < 6; f++)
 				{
-					FVector _ForwardVector = GetActorForwardVector() * (f * 75);
+					FVector _ForwardVector = GetActorForwardVector() * (f * 50);
 					FVector _StartLoc = FVector{HitResult.Location.X, HitResult.Location.Y, HitResult.Location.Z + 100} + _ForwardVector;
 					FVector _EndLoc = _StartLoc - FVector{0,0,100};
 			
@@ -240,10 +242,6 @@ void AISACharacterBase::MantleTrace()
 					{
 						if (!_HitResult.bStartPenetrating)
 						{
-							if (f == 0)
-							{
-								MantleSettings->VaultStartPos = _HitResult.Location;
-							}
 							MantleSettings->VaultMidPos = _HitResult.Location;
 						}
 						else
@@ -266,8 +264,6 @@ void AISACharacterBase::MantleTrace()
 				SetupMantle();
 			}
 			MantleSettings->bCanMantle = false;
-			
-			break;
 		}
 	}
 	else
@@ -352,7 +348,7 @@ void AISACharacterBase::ApplyDesiredStance()
 			UnCrouch();
 		}
 	}
-	else if (LocomotionAction == ISALocomotionActionTags::Rolling)
+	else if (LocomotionAction == ISALocomotionActionTags::Rolling || LocomotionAction == ISALocomotionActionTags::Sliding)
 	{
 		Crouch();
 	}
@@ -633,7 +629,7 @@ void AISACharacterBase::DisplayDebugStateInfo(const UCanvas* Canvas, const float
 	Text.Text = FText::FromString("Speed:");
 	Text.Draw(Canvas->Canvas, {HorizontalLocation, VerticalLocation});
 	
-	Text.Text = FText::AsNumber(GetISACharacterMovement()->MaxWalkSpeed);
+	Text.Text = FText::FromString(GetISACharacterMovement()->Velocity.ToString());
 	Text.Draw(Canvas->Canvas, {HorizontalLocation + ColumnOffset, VerticalLocation});
 
 	VerticalLocation += RowOffset;
