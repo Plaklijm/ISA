@@ -14,6 +14,9 @@ class ISA_API AISAPlayerCharacter : public AISACharacterBase
 	GENERATED_BODY()
 
 protected:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input);
+	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
+	
 	//MappingContext
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputMappingContext* DefaultMappingContext;
@@ -41,6 +44,9 @@ protected:
 	//Debug
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* DebugCommand;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* InteractAction;
 	
 public:
 
@@ -62,5 +68,7 @@ private:
 
 	void Input_OnCrouch();
 
+	void Input_OnInteract();
+	
 	bool CanMantle();
 };

@@ -6,6 +6,10 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "ISACharacterMovementComponent.h"
+#include "Interactibles/InteractableBase.h"
+#include "Interactibles/ISAInteractableInterface.h"
+#include "Interactibles/ISAPushComponent.h"
+#include "Kismet/KismetSystemLibrary.h"
 #include "Utility/MantleSettings.h"
 
 #pragma region Handle Input
@@ -40,6 +44,7 @@ void AISAPlayerCharacter::SetupPlayerInputComponent(UInputComponent* Input)
 		EnhancedInput->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ThisClass::Input_OnJump);
 		EnhancedInput->BindAction(CrouchAction, ETriggerEvent::Triggered, this, &ThisClass::Input_OnCrouch);
 		EnhancedInput->BindAction(DebugCommand, ETriggerEvent::Triggered, this, &ThisClass::SetDebugCommand);
+		EnhancedInput->BindAction(InteractAction, ETriggerEvent::Triggered, this, &ThisClass::Input_OnInteract);
 	}
 }
 
@@ -50,19 +55,26 @@ void AISAPlayerCharacter::Input_OnMove(const FInputActionValue& ActionValue)
 
 	if (Controller != nullptr)
 	{
-		// find out which way is forward
-		const FRotator Rotation = Controller->GetControlRotation();
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
+		if (!PushComponent->IsPushingObject())
+		{
+			// find out which way is forward
+			const FRotator Rotation = Controller->GetControlRotation();
+			const FRotator YawRotation(0, Rotation.Yaw, 0);
 
-		// get forward vector
-		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-	
-		// get right vector 
-		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+			// get forward vector
+			const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+		
+			// get right vector 
+			const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
-		// add movement 
-		AddMovementInput(ForwardDirection, MovementVector.Y);
-		AddMovementInput(RightDirection, MovementVector.X);
+			// add movement 
+			AddMovementInput(ForwardDirection, MovementVector.Y);
+			AddMovementInput(RightDirection, MovementVector.X);
+		}
+		else
+		{
+			//PushComponent->PushObject(MovementVector);
+		}
 	}
 }
 
@@ -125,6 +137,36 @@ void AISAPlayerCharacter::Input_OnCrouch()
 	else if (GetDesiredStance() == ISAStanceTags::Crouching)
 	{
 		SetDesiredStance(ISAStanceTags::Standing);
+	}
+}
+
+void AISAPlayerCharacter::Input_OnInteract()
+{
+	if (!PushComponent->IsPushingObject())
+	{
+		FVector Center = GetActorLocation();
+		Center.Z -= ISACharacterMovementComponent->CapHH();
+
+		TArray<AActor*> IngoreActors;
+		IngoreActors.Add(this);
+
+		TArray<AActor*> OutActors;
+		
+		UKismetSystemLibrary::SphereOverlapActors(GetWorld(), Center, PushComponent->PushRange, ObjectTypes, nullptr, IngoreActors, OutActors);
+
+		for (auto Actor : OutActors)
+		{
+			IISAInteractableInterface* TheInterface = Cast<IISAInteractableInterface>(Actor);
+			if (TheInterface)
+			{
+				TheInterface->OnInteracted(this);
+				break;
+			}
+		}
+	}
+	else
+	{
+		PushComponent->EndPush();
 	}
 }
 

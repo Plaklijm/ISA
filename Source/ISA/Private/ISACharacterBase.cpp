@@ -17,6 +17,7 @@
 #include "Interactibles/InteractableBase.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Interactibles/ISAPushComponent.h"
 
 
 // AISACharacter
@@ -60,6 +61,9 @@ AISACharacterBase::AISACharacterBase(const FObjectInitializer& ObjectInitializer
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
+
+	// Initialize PushComponent
+	PushComponent = CreateDefaultSubobject<UISAPushComponent>(TEXT("PushComponent"));
 }
 
 
@@ -67,6 +71,7 @@ void AISACharacterBase::BeginPlay()
 {
 	ensure(IsValid(GeneralSettings));
 	ensure(IsValid(MantleSettings));
+	
 	// Call the base class  
 	Super::BeginPlay();
 

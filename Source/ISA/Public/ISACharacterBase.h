@@ -47,6 +47,9 @@ protected:
 
 	FTimerHandle BrakingFrictionFactorResetTimer;
 
+	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite)
+	class UISAPushComponent* PushComponent;
+
 private:
 	//Camera boom positioning the camera behind the character
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
@@ -184,6 +187,7 @@ protected:
 #pragma endregion
 	
 //Debug functions
+private:
 	virtual void DisplayDebug(UCanvas* Canvas, const FDebugDisplayInfo& DebugDisplay, float& YL, float& YPos) override;
 	
 	void DisplayDebugStateInfo(const UCanvas* Canvas, const float Scale, const float HorizontalLocation, float& VerticalLocation) const;
