@@ -64,6 +64,7 @@ void AISAPushableBase::HandleInteraction(AISACharacterBase* Player)
 			FHitResult HitResult;
 			TArray<AActor*> IgnoreActors;
 			IgnoreActors.Add(this);
+			
 			UKismetSystemLibrary::CapsuleTraceSingle(GetWorld(), Start, End, Radius, HalfHeight, UEngineTypes::ConvertToTraceType(ECC_Visibility),
 			false, IgnoreActors, EDrawDebugTrace::ForDuration, HitResult, true, FColor::Red, FColor::Green, 5);
 

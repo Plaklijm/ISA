@@ -14,7 +14,6 @@
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Engine/Canvas.h"
-#include "Interactibles/InteractableBase.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Interactibles/ISAPushComponent.h"
@@ -74,16 +73,6 @@ void AISACharacterBase::BeginPlay()
 	
 	// Call the base class  
 	Super::BeginPlay();
-
-	//Checks for the interactables and listen to the Broadcast	
-	TArray<AActor*> FoundInteractables;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AInteractableBase::StaticClass(), FoundInteractables);
-
-	for (int i = 0; i < FoundInteractables.Num(); i++)
-	{
-		AInteractableBase* TempInteractable = Cast<AInteractableBase>(FoundInteractables[i]);
-		TempInteractable->InteractFunction.AddDynamic(this, &AISACharacterBase::Interact);
-	}
 	
 	ApplyDesiredStance();
 
@@ -230,7 +219,7 @@ void AISACharacterBase::MantleTrace()
 			FHitResult HitResult;
 			
 			if (UKismetSystemLibrary::SphereTraceSingleForObjects(GetWorld(), StartLoc, EndLoc, 5, MantleSettings->ObjectTypes,
-				false, IngoreActors, EDrawDebugTrace::Type::ForDuration, HitResult, true))
+				false, IngoreActors, EDrawDebugTrace::Type::None, HitResult, true))
 			{
 				MantleSettings->VaultStartPos = FVector{GetActorLocation().X, GetActorLocation().Y, GetActorLocation().Z - ISACharacterMovementComponent->CapHH()};
 				
@@ -243,7 +232,7 @@ void AISACharacterBase::MantleTrace()
 					FHitResult _HitResult;
 			
 					if (UKismetSystemLibrary::SphereTraceSingleForObjects(GetWorld(), _StartLoc, _EndLoc, 5, MantleSettings->ObjectTypes,
-						false, IngoreActors, EDrawDebugTrace::Type::ForDuration, _HitResult, true))
+						false, IngoreActors, EDrawDebugTrace::Type::None, _HitResult, true))
 					{
 						if (!_HitResult.bStartPenetrating)
 						{
@@ -259,7 +248,7 @@ void AISACharacterBase::MantleTrace()
 					}
 					else if (UKismetSystemLibrary::LineTraceSingleForObjects(GetWorld(), _HitResult.TraceStart + GetActorForwardVector() * 80,
 						(_HitResult.TraceStart + GetActorForwardVector() * 80) - FVector{0,0,1000}, MantleSettings->ObjectTypes,
-						false, IngoreActors, EDrawDebugTrace::Type::ForDuration, _HitResult, true))
+						false, IngoreActors, EDrawDebugTrace::Type::None, _HitResult, true))
 					{
 						MantleSettings->VaultEndPos = _HitResult.Location;
 						break;
@@ -517,7 +506,7 @@ void AISACharacterBase::StartSlidingImplementation(UAnimMontage* Montage)
 	}
 }
 
-void AISACharacterBase::Interact_Implementation()
+void AISACharacterBase::Interact_Implementation(FTransform WarpTransform)
 {
 	GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Green, TEXT("Interacted"));
 }

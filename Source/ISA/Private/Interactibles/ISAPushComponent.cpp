@@ -21,6 +21,7 @@ void UISAPushComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
+	Player = UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetCharacter();
 	SetComponentTickEnabled(false);
 }
 
@@ -30,8 +31,7 @@ void UISAPushComponent::TickComponent(float DeltaTime, ELevelTick TickType,
                                       FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	ACharacter* Player = UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetCharacter();
+	
 	CurrentPushable->AddActorWorldOffset(GetOwner()->GetActorForwardVector() * PushSpeed * DeltaTime);
 	
 }
@@ -40,7 +40,6 @@ void UISAPushComponent::BeginPush(AISAPushableBase* Pushable)
 {
 	if (!IsValid(CurrentPushable))
 	{
-		ACharacter* Player = UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetCharacter();
 		CurrentPushable = Pushable;
 		const FAttachmentTransformRules Rules(EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, true);
 		Player->AttachToActor(CurrentPushable, Rules);
@@ -54,22 +53,11 @@ void UISAPushComponent::BeginPush(AISAPushableBase* Pushable)
 void UISAPushComponent::EndPush()
 {
 	CurrentPushable = {};
-	ACharacter* Player = UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetCharacter();
 	const FDetachmentTransformRules Rules(EDetachmentRule::KeepWorld, EDetachmentRule::KeepWorld, EDetachmentRule::KeepWorld, false);
 	Player->DetachFromActor(Rules);
 	Player->GetCharacterMovement()->SetPlaneConstraintEnabled(false);
 	Player->GetCharacterMovement()->bOrientRotationToMovement = true;
 	SetComponentTickEnabled(false);
-}
-
-void UISAPushComponent::PushObject(FVector2D MovementVector)
-{
-	ACharacter* Player = UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetCharacter();
-	UE_LOG(LogTemp, Warning, TEXT("%f, %f"), MovementVector.X, MovementVector.Y);
-	UE_LOG(LogTemp, Warning, TEXT("AdjustedSpeed: %s"), *(Player->GetActorRightVector() * PushSpeed * GetWorld()->GetDeltaSeconds()).ToString());
-	UE_LOG(LogTemp, Warning, TEXT("PlayerForward Vector: %s"), *Player->GetActorForwardVector().ToString())
-
-	CurrentPushable->AddActorWorldOffset(FVector{MovementVector.Y, MovementVector.X, 0}, true);
 }
 
 bool UISAPushComponent::IsPushingObject() const
@@ -86,10 +74,8 @@ float UISAPushComponent::GetPushableHeight() const
 		CurrentPushable->Box->GetLocalBounds(Min, Max);
 		float ObjectTop = Max.Z - Min.Z;
 		ObjectTop += CurrentPushable->GetActorLocation().Z;
-		const ACharacter* Player = UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetCharacter();
 		const float CharacterFeet = Player->GetActorLocation().Z - Player->GetCapsuleComponent()->GetScaledCapsuleHalfHeight() / 2;
-
-
+		
 		return ObjectTop - CharacterFeet;
 	}
 

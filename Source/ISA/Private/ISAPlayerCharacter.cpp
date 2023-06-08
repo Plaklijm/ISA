@@ -6,11 +6,9 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "ISACharacterMovementComponent.h"
-#include "Interactibles/InteractableBase.h"
 #include "Interactibles/ISAInteractableInterface.h"
 #include "Interactibles/ISAPushComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
-#include "Utility/MantleSettings.h"
 
 #pragma region Handle Input
 
@@ -71,10 +69,6 @@ void AISAPlayerCharacter::Input_OnMove(const FInputActionValue& ActionValue)
 			AddMovementInput(ForwardDirection, MovementVector.Y);
 			AddMovementInput(RightDirection, MovementVector.X);
 		}
-		else
-		{
-			//PushComponent->PushObject(MovementVector);
-		}
 	}
 }
 
@@ -107,7 +101,7 @@ void AISAPlayerCharacter::Input_OnSprint(const FInputActionValue& ActionValue)
 
 void AISAPlayerCharacter::Input_OnJump(const FInputActionValue& ActionValue)
 {
-	if (ActionValue.Get<bool>())
+	if (ActionValue.Get<bool>() && !PushComponent->IsPushingObject())
 	{
 		if (GetStance() == ISAStanceTags::Crouching)
 		{
@@ -129,14 +123,17 @@ void AISAPlayerCharacter::Input_OnJump(const FInputActionValue& ActionValue)
 
 void AISAPlayerCharacter::Input_OnCrouch()
 {
-	if (GetDesiredStance() == ISAStanceTags::Standing)
+	if (!PushComponent->IsPushingObject())
 	{
-		SetDesiredStance(ISAStanceTags::Crouching);
-		//TryStartSliding();
-	}
-	else if (GetDesiredStance() == ISAStanceTags::Crouching)
-	{
-		SetDesiredStance(ISAStanceTags::Standing);
+		if (GetDesiredStance() == ISAStanceTags::Standing)
+		{
+			SetDesiredStance(ISAStanceTags::Crouching);
+			//TryStartSliding();
+		}
+		else if (GetDesiredStance() == ISAStanceTags::Crouching)
+		{
+			SetDesiredStance(ISAStanceTags::Standing);
+		}
 	}
 }
 
@@ -159,6 +156,7 @@ void AISAPlayerCharacter::Input_OnInteract()
 			IISAInteractableInterface* TheInterface = Cast<IISAInteractableInterface>(Actor);
 			if (TheInterface)
 			{
+				GEngine->AddOnScreenDebugMessage(1, 2, FColor::Red, TEXT("Interacted"));
 				TheInterface->OnInteracted(this);
 				break;
 			}
@@ -174,9 +172,5 @@ bool AISAPlayerCharacter::CanMantle()
 {
 	return LocomotionMode == ISALocomotionModeTags::Grounded;
 }
-
-#pragma endregion 
-
-#pragma region Handle Rolling
 
 #pragma endregion 

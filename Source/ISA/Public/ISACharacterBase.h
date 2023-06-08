@@ -181,8 +181,9 @@ protected:
 	void StartSliding();
 	void StartSlidingImplementation(UAnimMontage* Montage);
 
+public:
 	UFUNCTION(BlueprintNativeEvent, Category = "Overlap")
-	void Interact();
+	void Interact(FTransform WarpTransform);
 
 #pragma endregion
 	

@@ -25,6 +25,9 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	AISAPushableBase* CurrentPushable{};
 
+	UPROPERTY()
+	ACharacter* Player; 
+
 public:
 	// Sets default values for this component's properties
 	UISAPushComponent();
