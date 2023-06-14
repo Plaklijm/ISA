@@ -47,8 +47,6 @@ void AISAPushableBase::HandleInteraction(AISACharacterBase* Player)
 	UISAPushComponent* PushComp = Player->GetComponentByClass<UISAPushComponent>();
 	if (Player && PushComp)
 	{
-		FTransform PrevCharacterTransform = Player->GetActorTransform();
-			
 		int Index = FindClosestPushTransfromIndex(FVector2d(Player->GetActorLocation()), PushComp->PushRange);
 		if (Index >= 0)
 		{
@@ -58,7 +56,6 @@ void AISAPushableBase::HandleInteraction(AISACharacterBase* Player)
 			Center.Z += HalfHeight;
 
 			FTransform CurrentCharacterTransform = FTransform(PushTransforms[Index].GetRotation(), Center, Player->GetActorScale3D());
-			DrawDebugSphere(GetWorld(), CurrentCharacterTransform.GetLocation(), 15, 12, FColor::Red, false, 2, 0, 2);
 			FVector Start = CurrentCharacterTransform.GetLocation() + FVector(0,0, 70);
 			FVector End = CurrentCharacterTransform.GetLocation() - FVector(0,0,100);
 			FHitResult HitResult;
@@ -66,12 +63,12 @@ void AISAPushableBase::HandleInteraction(AISACharacterBase* Player)
 			IgnoreActors.Add(this);
 			
 			UKismetSystemLibrary::CapsuleTraceSingle(GetWorld(), Start, End, Radius, HalfHeight, UEngineTypes::ConvertToTraceType(ECC_Visibility),
-			false, IgnoreActors, EDrawDebugTrace::ForDuration, HitResult, true, FColor::Red, FColor::Green, 5);
+			false, IgnoreActors, EDrawDebugTrace::Type::None, HitResult, true, FColor::Red, FColor::Green, 5);
 
 			if (!HitResult.bStartPenetrating && Player->GetISACharacterMovement()->GetWalkableFloorZ() < HitResult.ImpactNormal.Z)
 			{
 				if (!UKismetSystemLibrary::LineTraceSingle(GetWorld(), GetActorLocation(), CurrentCharacterTransform.GetLocation(), UEngineTypes::ConvertToTraceType(ECC_Visibility),
-						false, TArray<AActor*>(), EDrawDebugTrace::ForDuration, HitResult, true))
+						false, TArray<AActor*>(), EDrawDebugTrace::Type::None, HitResult, true))
 				{
 					Player->SetActorTransform(CurrentCharacterTransform);
 					PushComp->BeginPush(this);

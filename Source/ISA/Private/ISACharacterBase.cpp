@@ -219,7 +219,7 @@ void AISACharacterBase::MantleTrace()
 			FHitResult HitResult;
 			
 			if (UKismetSystemLibrary::SphereTraceSingleForObjects(GetWorld(), StartLoc, EndLoc, 5, MantleSettings->ObjectTypes,
-				false, IngoreActors, EDrawDebugTrace::Type::None, HitResult, true))
+				false, IngoreActors, EDrawDebugTrace::Type::Persistent, HitResult, true))
 			{
 				MantleSettings->VaultStartPos = FVector{GetActorLocation().X, GetActorLocation().Y, GetActorLocation().Z - ISACharacterMovementComponent->CapHH()};
 				
@@ -232,7 +232,7 @@ void AISACharacterBase::MantleTrace()
 					FHitResult _HitResult;
 			
 					if (UKismetSystemLibrary::SphereTraceSingleForObjects(GetWorld(), _StartLoc, _EndLoc, 5, MantleSettings->ObjectTypes,
-						false, IngoreActors, EDrawDebugTrace::Type::None, _HitResult, true))
+						false, IngoreActors, EDrawDebugTrace::Type::Persistent, _HitResult, true))
 					{
 						if (!_HitResult.bStartPenetrating)
 						{
@@ -248,7 +248,7 @@ void AISACharacterBase::MantleTrace()
 					}
 					else if (UKismetSystemLibrary::LineTraceSingleForObjects(GetWorld(), _HitResult.TraceStart + GetActorForwardVector() * 80,
 						(_HitResult.TraceStart + GetActorForwardVector() * 80) - FVector{0,0,1000}, MantleSettings->ObjectTypes,
-						false, IngoreActors, EDrawDebugTrace::Type::None, _HitResult, true))
+						false, IngoreActors, EDrawDebugTrace::Type::Persistent, _HitResult, true))
 					{
 						MantleSettings->VaultEndPos = _HitResult.Location;
 						break;
