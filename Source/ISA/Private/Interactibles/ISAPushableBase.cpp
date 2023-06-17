@@ -44,6 +44,7 @@ void AISAPushableBase::OnInteracted(AISACharacterBase* Player)
 
 void AISAPushableBase::HandleInteraction(AISACharacterBase* Player)
 {
+	// Checks if pushcomponent is attached to the player
 	UISAPushComponent* PushComp = Player->GetComponentByClass<UISAPushComponent>();
 	if (Player && PushComp)
 	{
@@ -61,7 +62,8 @@ void AISAPushableBase::HandleInteraction(AISACharacterBase* Player)
 			FHitResult HitResult;
 			TArray<AActor*> IgnoreActors;
 			IgnoreActors.Add(this);
-			
+
+			// trace for the pushable box
 			UKismetSystemLibrary::CapsuleTraceSingle(GetWorld(), Start, End, Radius, HalfHeight, UEngineTypes::ConvertToTraceType(ECC_Visibility),
 			false, IgnoreActors, EDrawDebugTrace::Type::None, HitResult, true, FColor::Red, FColor::Green, 5);
 
@@ -70,6 +72,7 @@ void AISAPushableBase::HandleInteraction(AISACharacterBase* Player)
 				if (!UKismetSystemLibrary::LineTraceSingle(GetWorld(), GetActorLocation(), CurrentCharacterTransform.GetLocation(), UEngineTypes::ConvertToTraceType(ECC_Visibility),
 						false, TArray<AActor*>(), EDrawDebugTrace::Type::None, HitResult, true))
 				{
+					// begins the push in the component
 					Player->SetActorTransform(CurrentCharacterTransform);
 					PushComp->BeginPush(this);
 				}
@@ -80,6 +83,7 @@ void AISAPushableBase::HandleInteraction(AISACharacterBase* Player)
 
 int AISAPushableBase::FindClosestPushTransfromIndex(FVector2d CharacterLoc, float PushRange)
 {
+	// Checks for the closest transform attached to the pushable. Determines which direction the player pushes the box
 	int ClosestTransformIndex = -1;
 	float ClosestDistanceSq{};
 	

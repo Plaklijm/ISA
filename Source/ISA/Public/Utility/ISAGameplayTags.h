@@ -25,9 +25,9 @@ namespace ISAGaitTags
 
 namespace ISALocomotionActionTags
 {
-	ISA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Rolling)
 	ISA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Mantling)
 	ISA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Sliding);
 	//Maybe implemented later
 	//ISA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GettingUp)
+	//ISA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Rolling)
 }

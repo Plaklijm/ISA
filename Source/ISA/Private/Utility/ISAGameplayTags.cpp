@@ -21,9 +21,9 @@ namespace ISAGaitTags
 
 namespace ISALocomotionActionTags
 {
-	UE_DEFINE_GAMEPLAY_TAG(Rolling, FName{ TEXTVIEW("ISA.LocomotionAction.Rolling") })
 	UE_DEFINE_GAMEPLAY_TAG(Mantling, FName{ TEXTVIEW("ISA.LocomotionAction.Mantling") })
 	UE_DEFINE_GAMEPLAY_TAG(Sliding, FName{ TEXTVIEW("ISA.LocomotionAction.Sliding")})
 	//Maybe implemented later (Dont forget to change in .ini file)
 	//UE_DEFINE_GAMEPLAY_TAG(GettingUp, FName{TEXTVIEW("ISA.LocomotionAction.GettingUp")})
+	//UE_DEFINE_GAMEPLAY_TAG(Rolling, FName{ TEXTVIEW("ISA.LocomotionAction.Rolling") })
 }

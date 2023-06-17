@@ -14,7 +14,6 @@
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Engine/Canvas.h"
-#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Interactibles/ISAPushComponent.h"
 
@@ -169,10 +168,6 @@ void AISACharacterBase::Tick(float DeltaTime)
 	RefreshLocomotion(DeltaTime);
 
 	RefreshGait();
-
-	//CalculateWallHeight();
-
-	//VaultJumpHelperFunction();
 	
 	Super::Tick(DeltaTime);
 }
@@ -292,15 +287,6 @@ void AISACharacterBase::NotifyLocomotionModeChanged(const FGameplayTag& Previous
 
 	if (LocomotionMode == ISALocomotionModeTags::Grounded && PreviousLocomotionMode == ISALocomotionModeTags::InAir)
 	{
-		/*UE_LOG(LogTemp, Error, TEXT("%f"), ISACharacterMovementComponent->Velocity.Z)
-		if (GetISACharacterMovement()->Velocity.Z <= -Settings->TestValue)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("StartRolling"));
-			//StartRolling
-			//Fix Velocity.Z (cant get value out of it for some reason)
-
-		}*/
-		
 			ISACharacterMovementComponent->BrakingFrictionFactor = ISACharacterMovementComponent->bHasInput 
 																									? GeneralSettings->HasInputBrakingFrictionFactor 
 																									: GeneralSettings->NoInputBrakingFrictionFactor;
@@ -343,7 +329,7 @@ void AISACharacterBase::ApplyDesiredStance()
 			UnCrouch();
 		}
 	}
-	else if (LocomotionAction == ISALocomotionActionTags::Rolling || LocomotionAction == ISALocomotionActionTags::Sliding)
+	else if (LocomotionAction == ISALocomotionActionTags::Sliding)
 	{
 		Crouch();
 	}
@@ -425,7 +411,7 @@ FGameplayTag AISACharacterBase::CalculateMaxAllowedGait() const
 FGameplayTag AISACharacterBase::CalculateActualGait(const FGameplayTag& MaxAllowedGait) const
 {
 	//Calculates the actual gait the player is in, this can differ from the desired or max allowed gait,
-	//When sprinting to walking youll only be in the walking gait when you decelerate enough to be considerd walking
+	//When sprinting to walking you'll only be in the walking gait when you decelerate enough to be considerd walking
 	
 	if (GetISACharacterMovement()->Speed < GeneralSettings->WalkSpeed + 10.f)
 	{
@@ -459,13 +445,11 @@ void AISACharacterBase::NotifyLocomotionActionChanged(const FGameplayTag& Previo
 
 UAnimMontage* AISACharacterBase::SelectRollMontage_Implementation()
 {
-	UE_LOG(LogTemp, Warning, TEXT("SELECTMONTAGE"));
 	return GeneralSettings->SlideSettings.Montage;
 }
 
 void AISACharacterBase::TryStartSliding()
 {
-	UE_LOG(LogTemp, Warning, TEXT("TryStartSliding"));
 	if (LocomotionMode == ISALocomotionModeTags::Grounded)
 	{
 		StartSliding();
@@ -474,25 +458,20 @@ void AISACharacterBase::TryStartSliding()
 
 bool AISACharacterBase::IsAllowedToSlide(const UAnimMontage* Montage) const
 {
-	UE_LOG(LogTemp, Warning, TEXT("ISAllowedToSlide"));
 	return !LocomotionAction.IsValid() ||
-			   // ReSharper disable once CppRedundantParentheses
-			   (LocomotionAction == ISALocomotionActionTags::Rolling &&
-				!GetMesh()->GetAnimInstance()->Montage_IsPlaying(Montage)) ||
+			   (!GetMesh()->GetAnimInstance()->Montage_IsPlaying(Montage)) ||
 					LocomotionMode == ISAGaitTags::Walking;
 }
 
 void AISACharacterBase::StartSliding()
 {
-	UE_LOG(LogTemp, Warning, TEXT("START SLIDING"));
 	auto* Montage{SelectRollMontage()};
 
 	if (!ensure(IsValid(Montage)) || !IsAllowedToSlide(Montage))
 	{
 		return;
 	}
-
-	UE_LOG(LogTemp, Warning, TEXT("Sliding has started"));
+	
 	StartSlidingImplementation(Montage);
 }
 
@@ -500,7 +479,6 @@ void AISACharacterBase::StartSlidingImplementation(UAnimMontage* Montage)
 {
 	if (IsAllowedToSlide(Montage))// && GetMesh()->GetAnimInstance()->Montage_Play(Montage, 1))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("started"));
 		PlayAnimMontage(Montage,1);
 		SetLocomotionAction(ISALocomotionActionTags::Sliding);
 	}
